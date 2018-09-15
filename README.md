@@ -1,4 +1,5 @@
 # Flashtest
+[![npm version](https://img.shields.io/npm/v/flashtest.svg)](https://www.npmjs.com/package/flashtest)
 
 Flashtest is Javascript library for generating tests written with [jest](https://github.com/facebook/jest) and [puppeteer](https://github.com/GoogleChrome/puppeteer). You just interacts with UI as a usual user and test is generated for you!
 > #### !!! Important:

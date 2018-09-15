@@ -126,19 +126,14 @@ Library tracks requests which are sent with only [fetch](https://developer.mozil
 
 ### Current support 
 1. `HTMLElement` was only checked, `SVGElement` and others weren't checked yet. 
-2.  Events added on window aren't supported. So if you have functionality that hides modal window when ESC is pressed:
-      ```js
-        window.addEventListener('keypress', e => {
-          // if ESC pressed hide modal window
-        });
-      ```
-      and use this functionality when generating test,
-      generated test will be broken. 
+2.  Special buttons such as `Esc`, `Backspace` and similar ones aren't supported.
 3. There is no possibility to generate test with mocked requests. It is really huge drawback because if backend data change from test run to test run, your test will fail. This feature is one of primary features which are planned to be implemented.
 4. Body of request isn't checked in tests, only url and method are checked.
 5. Url change isn't supported. If you want to create test for particular url, go to this url, reload page and start
 `interacting process` from scratch.
 6. HTMLElement with `contentEditable` attribute isn't handled properly yet, so generated code will be broken if you use this element and add `data-hook` attribute to it.
+7. Change to following elements aren't checked in generated code: `input[type="checkbox"]`, `input[type="radio"]` 
+and `select` because in these cases DOM isn't changed.
 
 
 ### Usage rules

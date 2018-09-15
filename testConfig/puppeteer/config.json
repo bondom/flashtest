@@ -1,0 +1,16 @@
+{
+  "preset": "jest-puppeteer",
+  "rootDir": "../../",
+  "testRegex": ".*\\.spec\\.(js|jsx?|tsx?|ts?)$",
+  "transform": {
+    "^.+\\.jsx?$": "babel-jest",
+    "^.+\\.(ts|tsx)$": "ts-jest"
+  },
+  "moduleFileExtensions": [
+    "ts",
+    "tsx",
+    "js",
+    "jsx",
+    "json"
+  ]
+}

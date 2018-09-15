@@ -1,0 +1,29 @@
+const timeout = 30000;
+
+describe('Button', () => {
+  let page;
+  beforeAll(async () => {
+    page = await global.browser.newPage();
+    await page.goto('http://localhost:8001/button');
+  }, timeout);
+
+  afterAll(async () => {
+    await page.close();
+  });
+
+  it(
+    'first test',
+    async () => {
+      expect(await page.$eval('[data-hook="click-result"]', el => el.outerHTML)).toEqual(
+        '<span data-hook="click-result">Button clicked: false</span>'
+      );
+
+      await page.click('[data-hook="button"]');
+
+      expect(await page.$eval('[data-hook="click-result"]', el => el.innerHTML)).toEqual(
+        'Button clicked: true'
+      );
+    },
+    timeout
+  );
+});

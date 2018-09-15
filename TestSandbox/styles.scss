@@ -1,0 +1,55 @@
+.valid {
+  border: 1px solid green;
+}
+
+.message {
+  border: 1px solid brown;
+  padding: 5px;
+}
+
+.valid-input {
+  border: 2px solid #53d253;
+  padding: 10px;
+}
+
+.form {
+  width: 300px;
+}
+
+.registration-form {
+  width: 700px;
+  &__error {
+    color: red;
+    margin-left: 10px;
+    display: inline-block;
+  }
+}
+
+.btn-valid {
+  background: green;
+  color: white;
+  cursor: pointer;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 30px;
+  width: 800px;
+  a {
+    margin-right: 10px;
+  }
+
+  div {
+    margin-bottom: 12px;
+  }
+}
+
+.clickableDiv {
+  cursor: pointer;
+}
+
+.label {
+  display: block;
+  margin-bottom: 5px;
+}

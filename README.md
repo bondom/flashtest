@@ -106,10 +106,11 @@ If these things are fine, it means that more likely there is a bug in library. F
 
 ### CollectorComponent API
 
-1. saveToFs?: boolean = false - if set to true, request will be sent to `backend part` and generated code will be saved in file.<br/>
-If you set `saveToFs` to true and didn't run backend part, code will be output to console.
-2. addComments?: boolean = true - if set to true, comments will be added to generated code. These comments
+1. saveToFs?: boolean = `false` - if set to `true`, request will be sent to `backend part` and generated code will be saved in file.<br/>
+If you set `saveToFs` to `true` and didn't run backend part, code will be output to console.
+2. addComments?: boolean = `true` - if set to `true`, comments will be added to generated code. These comments
 just help you to understand code.
+3. testsFolder?: string - path to folder where generated tests will be saved. Is ignored if `saveToFs` is `false`.
 
 ### Backend part API
 You can run backend part with `npm run flashtest-server` - it is needed only if you set `saveToFs` to `true`.

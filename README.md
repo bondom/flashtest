@@ -71,7 +71,7 @@ const RenderedApp = process.env.WRITE_TEST
   : App;
 ```
 
-You can find example of such usage in example repo.
+You can find example of such usage in [example repo](https://github.com/bondom/flashtest-example).
 
 #### 2. Add `data-hook` attribute to elements on page:
 1. `interaction elements`(these elements are also `testeable`): buttons, inputs, textareas, clickable divs and so on;

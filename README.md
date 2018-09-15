@@ -128,7 +128,7 @@ Library tracks requests which are sent with only [fetch](https://developer.mozil
 
 ### Current support 
 1. `HTMLElement` was only checked, `SVGElement` and others weren't checked yet. 
-2.  Special buttons such as `Esc`, `Backspace` and similar ones aren't supported.
+2.  Special buttons such as `Esc`, `Backspace` and similar ones aren't supported yet.
 3. There is no possibility to generate test with mocked requests. It is really huge drawback because if backend data change from test run to test run, your test will fail. This feature is one of primary features which are planned to be implemented.
 4. Body of request isn't checked in tests, only url and method are checked.
 5. Url change isn't supported. If you want to create test for particular url, go to this url, reload page and start

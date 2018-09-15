@@ -106,10 +106,11 @@ If these things are fine, it means that more likely there is a bug in library. F
 
 ### CollectorComponent API
 
-1. saveToFs?: boolean = false - if set to true, request will be sent to `backend part` and generated code will be saved in file.<br/>
-If you set `saveToFs` to true and didn't run backend part, code will be output to console.
-2. addComments?: boolean = true - if set to true, comments will be added to generated code. These comments
+1. saveToFs?: boolean = `false` - if set to `true`, request will be sent to `backend part` and generated code will be saved in file.<br/>
+If you set `saveToFs` to `true` and didn't run backend part, code will be output to console.
+2. addComments?: boolean = `true` - if set to `true`, comments will be added to generated code. These comments
 just help you to understand code.
+3. testsFolder?: string - path to folder where generated tests will be saved. Is ignored if `saveToFs` is `false`.
 
 ### Backend part API
 You can run backend part with `npm run flashtest-server` - it is needed only if you set `saveToFs` to `true`.
@@ -125,19 +126,14 @@ Library tracks requests which are sent with only [fetch](https://developer.mozil
 
 ### Current support 
 1. `HTMLElement` was only checked, `SVGElement` and others weren't checked yet. 
-2.  Events added on window aren't supported. So if you have functionality that hides modal window when ESC is pressed:
-      ```js
-        window.addEventListener('keypress', e => {
-          // if ESC pressed hide modal window
-        });
-      ```
-      and use this functionality when generating test,
-      generated test will be broken. 
+2.  Special buttons such as `Esc`, `Backspace` and similar ones aren't supported.
 3. There is no possibility to generate test with mocked requests. It is really huge drawback because if backend data change from test run to test run, your test will fail. This feature is one of primary features which are planned to be implemented.
 4. Body of request isn't checked in tests, only url and method are checked.
 5. Url change isn't supported. If you want to create test for particular url, go to this url, reload page and start
 `interacting process` from scratch.
 6. HTMLElement with `contentEditable` attribute isn't handled properly yet, so generated code will be broken if you use this element and add `data-hook` attribute to it.
+7. Change to following elements aren't checked in generated code: `input[type="checkbox"]`, `input[type="radio"]` 
+and `select` because in these cases DOM isn't changed.
 
 
 ### Usage rules

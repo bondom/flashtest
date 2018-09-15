@@ -213,7 +213,7 @@ class CollectorComponent extends React.Component {
 
 CollectorComponent.propTypes = {
   saveToFs: PropTypes.bool,
-  testsFolder: PropTypes.string.isRequired,
+  testsFolder: PropTypes.string,
   addComments: PropTypes.bool
 };
 export default CollectorComponent;

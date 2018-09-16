@@ -115,7 +115,7 @@ If you set `saveToFs` to `true` and didn't run backend part, code will be output
 #### addComments _(default: true)_ 
 if set to `true`, comments will be added to generated code. These comments just help you to understand code.
 #### testsFolder _(default: '')_
-path to folder where generated tests will be saved, is relative to app root folder. This prop will be ignored if `saveToFs` is `false`.
+path to folder where generated tests will be saved, is relative to app root folder. <br/>This prop will be ignored if `saveToFs` is `false`.
 #### serverPort _(default: 3000)_ 
 port where backend part is running.<br/>
 <b>Note:</b> `serverPort` should equal to `-p` arg passed to `flashtest-server`!

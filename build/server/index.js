@@ -4,9 +4,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var express = require("express");
 var bodyParser = require("body-parser");
 var cors = require("cors");
+var Constants_1 = require("../client/Constants");
 var saver_1 = require("./saver");
 var args = process.argv.slice(2);
-var port = 3000;
+var port = Constants_1.SERVER_DEFAULT_PORT;
 if (args.length >= 2 && args[0] === '-p') {
     port = parseInt(args[1]);
 }
@@ -18,7 +19,7 @@ if (isNaN(port)) {
 var app = express();
 app.use(cors());
 app.use(bodyParser.json());
-app.post('/writeFile', function (req, res) {
+app.post("/" + Constants_1.SERVER_URI, function (req, res) {
     var _a = req.body, fileName = _a.fileName, code = _a.code, testsFolder = _a.testsFolder;
     return saver_1.save(fileName, code, testsFolder)
         .then(function () {

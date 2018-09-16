@@ -15,7 +15,7 @@ import {
   RequestAction
 } from './types';
 
-import { SERVER_URL } from './Constants';
+import { SERVER_URI, SERVER_DEFAULT_PORT } from './Constants';
 
 import Console from '../Console';
 
@@ -29,6 +29,7 @@ class PuppeteerTestGenerator {
   errorsArray: string[];
   testName?: string;
   testsFolder?: string;
+  serverUrl: string;
 
   constructor({
     addComments = true,
@@ -36,7 +37,8 @@ class PuppeteerTestGenerator {
     saveToFs,
     errorsArray,
     testName,
-    testsFolder
+    testsFolder,
+    serverPort
   }: {
     addComments: boolean;
     indicatorQuerySelector?: string;
@@ -44,17 +46,20 @@ class PuppeteerTestGenerator {
     errorsArray: string[];
     testName?: string;
     testsFolder?: string;
+    serverPort?: number;
   }) {
-    this.collector = new Collector({
-      indicatorQuerySelector,
-      errorsArray
-    });
     this.saveToFs = saveToFs;
     this.dataHandler = new DataHandler();
     this.actionsHandler = new ActionsHandler();
     this.addComments = addComments;
     this.testName = testName;
     this.testsFolder = testsFolder;
+    this.serverUrl = `http://localhost:${serverPort || SERVER_DEFAULT_PORT}/${SERVER_URI}`;
+    this.collector = new Collector({
+      indicatorQuerySelector,
+      errorsArray,
+      serverUrl: this.serverUrl
+    });
   }
 
   start() {
@@ -77,7 +82,7 @@ class PuppeteerTestGenerator {
 
   private saveFile(generatedCode: string): Promise<void | Error> {
     const url = this.collector.url;
-    return fetch(SERVER_URL, {
+    return fetch(this.serverUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

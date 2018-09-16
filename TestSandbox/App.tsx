@@ -47,7 +47,7 @@ import * as styles from './styles.scss';
 import CollectorComponent from '../src/CollectorComponent/CollectorComponent.jsx';
 
 const App = () => (
-  <CollectorComponent saveToFs={false} addComments={true} testsFolder="tests/tests/">
+  <CollectorComponent saveToFs={true} addComments={true} testsFolder="tests/tests/">
     <Router history={createHistory()}>
       <div>
         <nav className={styles.nav}>

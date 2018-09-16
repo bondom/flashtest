@@ -7,7 +7,6 @@ import {
   DOMMutationAction,
   UserInteractionAction
 } from './types';
-import { SERVER_URL } from './Constants';
 import { isRequestAction, isUserInteractionAction } from './helper';
 
 /* 
@@ -49,13 +48,16 @@ class Collector {
   errorsArray: string[];
   handleUrlTimerId: number;
   interactionElementTagNames: string[] = ['input', 'textarea', 'button', 'select'];
+  serverUrl: string;
 
   constructor({
     indicatorQuerySelector,
-    errorsArray
+    errorsArray,
+    serverUrl
   }: {
     indicatorQuerySelector?: string;
     errorsArray: string[];
+    serverUrl: string;
   }) {
     this.eventListenersCallbacksMap = [
       'click',
@@ -76,6 +78,7 @@ class Collector {
     this.indicator = null;
     this.indicatorQuerySelector = indicatorQuerySelector;
     this.errorsArray = errorsArray;
+    this.serverUrl = serverUrl;
   }
 
   start() {
@@ -731,7 +734,7 @@ class Collector {
     let lastRequestId = 0;
     window.fetch = function() {
       const url = arguments[0];
-      if (url === SERVER_URL) {
+      if (url === self.serverUrl) {
         return originalFetch.apply(this, arguments);
       }
       const method: string = arguments[1] ? arguments[1].method || 'get' : 'get';

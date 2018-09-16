@@ -72,7 +72,8 @@ app.delete('/todolist/:id', (req: express.Request, res: express.Response) => {
 app.post('/todolist/:text', (req: express.Request, res: express.Response) => {
   const { text } = req.params;
   setTimeout(() => {
-    const newId = todoList.length === 0 ? 1 : Math.max.apply(null, todoList.map(item => item.id)) + 1;
+    const newId =
+      todoList.length === 0 ? 1 : Math.max.apply(null, todoList.map(item => item.id)) + 1;
     todoList.push({
       id: newId,
       text

@@ -3,11 +3,12 @@
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
 import * as cors from 'cors';
+import { SERVER_DEFAULT_PORT, SERVER_URI } from '../client/Constants';
 import { save } from './saver';
 
 var args = process.argv.slice(2);
 
-let port = 3000;
+let port = SERVER_DEFAULT_PORT;
 if (args.length >= 2 && args[0] === '-p') {
   port = parseInt(args[1]);
 };
@@ -21,7 +22,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-app.post('/writeFile', (req: express.Request, res: express.Response) => {
+app.post(`/${SERVER_URI}`, (req: express.Request, res: express.Response) => {
   const { fileName, code, testsFolder } = req.body;
 
   return save(fileName, code, testsFolder)

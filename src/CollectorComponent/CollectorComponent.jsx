@@ -27,6 +27,7 @@ class CollectorComponent extends React.Component {
         saveToFs: props.saveToFs,
         addComments: props.addComments,
         indicatorQuerySelector: '[data-flashtest-hook="___FLASHTEST-INDICATOR"]',
+        serverPort: props.serverPort,
         errorsArray
       }),
 
@@ -214,6 +215,7 @@ class CollectorComponent extends React.Component {
 CollectorComponent.propTypes = {
   saveToFs: PropTypes.bool,
   testsFolder: PropTypes.string,
-  addComments: PropTypes.bool
+  addComments: PropTypes.bool,
+  serverPort: PropTypes.number
 };
 export default CollectorComponent;

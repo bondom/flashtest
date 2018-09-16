@@ -1,1 +1,2 @@
-export const SERVER_URL = 'http://localhost:3000/writeFile';
+export const SERVER_URI = 'writeFile';
+export const SERVER_DEFAULT_PORT = 3000;

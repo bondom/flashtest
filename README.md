@@ -1,7 +1,7 @@
 # Flashtest
 [![npm version](https://img.shields.io/npm/v/flashtest.svg)](https://www.npmjs.com/package/flashtest)
 
-Flashtest is Javascript library for generating tests written with [jest](https://github.com/facebook/jest) and [puppeteer](https://github.com/GoogleChrome/puppeteer). You just interacts with UI as a usual user and test is generated for you!
+Flashtest is Javascript library for generating tests written with [jest](https://github.com/facebook/jest) and [puppeteer](https://github.com/GoogleChrome/puppeteer). You just interact with UI as a usual user and test is generated for you!
 > #### !!! Important:
 > 1. For now library exposes only component for [React](https://github.com/facebook/react) users.
 > 2. Library was tested only in Chrome.
@@ -15,10 +15,10 @@ Flashtest is Javascript library for generating tests written with [jest](https:/
 ### Installation
 
 This library generates test written with jest and puppeteer.
-So first you need to setup jest and puppeteer to work together, otherwise you will not be able to run generated tests.
+So first you need to setup [jest](https://github.com/facebook/jest) and [puppeteer](https://github.com/GoogleChrome/puppeteer) to work together, otherwise you will not be able to run generated tests.
 There is awesome [jest-puppeteer](https://github.com/smooth-code/jest-puppeteer) for this.
 
-After you set up jest with puppeteer:
+After you set up jest with puppeteer run:
 ```shell
 npm i flashtest --save-dev
 ```
@@ -46,7 +46,7 @@ npm i flashtest --save-dev
   ReactDOM.render(<RenderedApp />, document.getElementById("app"));
 ```
 
-Because of you need `CollectorComponent` only for generating tests, you can create one more separate script 
+<!-- Because of you need `CollectorComponent` only for generating tests, you can create one more separate script 
 with env variable and conditionally render your App component depending on this env variable.
 
 <b>Example:</b>
@@ -70,7 +70,7 @@ const RenderedApp = process.env.WRITE_TEST
       </CollectorComponent>
     )
   : App;
-```
+``` -->
 
 #### 2. Add `data-hook` attribute to elements on page:
 1. `interaction elements`(these elements are also `testeable`): buttons, inputs, textareas, clickable divs and so on;
@@ -78,7 +78,7 @@ const RenderedApp = process.env.WRITE_TEST
 <br/>
 
 <b>The rule of thumb is:</b> first add `data-hook` attribute to your `interaction elements`, because if you miss to add `data-hook` attribute to `interaction element`, and then interact
-with this element you will get broken code. Now there is no way to detect this error before 
+with this element you will get broken code. Now there is no way to detect this wrong usage before 
 actual test generating.
 
 
@@ -94,8 +94,9 @@ Just open your page, and interact with elements.
 get corresponding message in helper window. Generated code is output to console or saved to file depending on `saveToFs` prop of CollectorComponent.
 <br/>
 <br/>
-When you got generated code in file just run it,
-if it passes - good! If it fails at once after generating check next things:
+When you got generated code in test file just run it,
+if it passes - good!<br/>
+If test <b>fails</b> at once after generating check next things:
 1. Your jest puppeteer setup, to check this one just create simple test with jest and puppeteer and run it.
 2. Check if you added `data-hook` attribute to all `interaction elements` you interacted with.
 3. If you use async requests, check if data sent by backend didn't change.
@@ -108,18 +109,24 @@ There is [example repo](https://github.com/bondom/flashtest-example).
 
 ### CollectorComponent API
 
-1. saveToFs?: boolean = `false` - if set to `true`, request will be sent to `backend part` and generated code will be saved in file.<br/>
+#### saveToFs _(default: false)_
+if set to `true`, request will be sent to `backend part` and generated code will be saved in file.<br/>
 If you set `saveToFs` to `true` and didn't run backend part, code will be output to console.
-2. addComments?: boolean = `true` - if set to `true`, comments will be added to generated code. These comments
-just help you to understand code.
-3. testsFolder?: string - path to folder where generated tests will be saved. Is ignored if `saveToFs` is `false`.
+#### addComments _(default: true)_ 
+if set to `true`, comments will be added to generated code. These comments just help you to understand code.
+#### testsFolder _(default: '')_
+path to folder where generated tests will be saved, is relative to app root folder. <br/>This prop will be ignored if `saveToFs` is `false`.
+#### serverPort _(default: 3000)_ 
+port where backend part is running.<br/>
+<b>Note:</b> `serverPort` should equal to `-p` arg passed to `flashtest-server`!
 
 ### Backend part API
 You can run backend part with `npm run flashtest-server` - it is needed only if you set `saveToFs` to `true`.
 
 By default express server will run on 3000 port. If you want to change port, specify `-p` arg:
 
-`npm run flashtest-server -p 3333`
+`npm run flashtest-server -p 3333`<br/>
+<b>Note:</b> `-p` arg should equal to [serverPort](#serverport-default-3000) prop of CollectorComponent!
 
 ### Async requests
 Library tracks requests which are sent with only [fetch](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch), if you use
@@ -166,10 +173,10 @@ it is possible. It is needed to avoid putting useless info in generated code.
     </div>
     ```
 
-    One more example of good usage(div and span both have `data-hook` attribute):
+    One more example of good usage:<br/>`div` and `span` both have `data-hook` attribute, it may be needed if `div` element for example has some DOM attribute(e.g. `className`) that changes dynamically:
 
     ```jsx
-    <div data-hook="some-div-data-hook-name">
+    <div data-hook="some-div-data-hook-name" className="[dynamic-className]">
       Some static text
       <span data-hook="some-span-data-hook-name">
         [value that changes when some button is clicked]
@@ -204,7 +211,8 @@ it is possible. It is needed to avoid putting useless info in generated code.
     </div>
     ```
     When user typed value in input, only attribute value of input will be checked,
-    but outerHTML of div will not be checked. If you want to check this one, it should be:
+    but outerHTML of div will not be checked.<br/>
+    If you want to check this one, it should be:
 
     ```jsx
     <div data-hook="div">

@@ -126,7 +126,7 @@ You can run backend part with `npm run flashtest-server` - it is needed only if 
 By default express server will run on 3000 port. If you want to change port, specify `-p` arg:
 
 `npm run flashtest-server -p 3333`<br/>
-<b>Note:</b> `-p` arg should equal to [serverPort](#serverPort) prop of CollectorComponent!
+<b>Note:</b> `-p` arg should equal to [serverPort](#serverport-default-3000) prop of CollectorComponent!
 
 ### Async requests
 Library tracks requests which are sent with only [fetch](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch), if you use

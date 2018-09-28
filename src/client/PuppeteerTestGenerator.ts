@@ -141,7 +141,7 @@ class PuppeteerTestGenerator {
 
     let gotoCode = '';
     let testCaseCode = '';
-    // if on initial render of page some async requests are called
+    // if some async requests are called on initial render of page
     if (
       firstChunk.some(isRequestAction) &&
       firstChunk.filter(isUserInteractionAction).length === 0
@@ -250,9 +250,9 @@ class PuppeteerTestGenerator {
     // Traverse action chunks and generate code
     actionChunks.forEach((chunk, index) => {
       if (chunk.filter(isRequestAction).length === 0) {
-        code += this.generateCodeForSyncActionChunk(chunk, index, actionChunks, initMarkups);
+        code += this.generateCodeForSyncActionChunk(chunk, index, actionChunks);
       } else {
-        code += this.generateCodeForAsyncActionChunk(chunk, index, actionChunks, initMarkups);
+        code += this.generateCodeForAsyncActionChunk(chunk, index, actionChunks);
       }
     });
 
@@ -286,7 +286,8 @@ class PuppeteerTestGenerator {
     ]);
     `;
   }
-  private generateCodeForSimulatingUserAction(
+
+  private generateCodeToExecuteUserAction(
     interaction: UserInteractionAction,
     addSemicolon: boolean = true,
     causedAsyncRequest: boolean = false
@@ -331,10 +332,7 @@ class PuppeteerTestGenerator {
     return code;
   }
 
-  private generateCodeForCheckingValuesAfterInteraction(
-    mutations: DOMMutationAction[],
-    initMarkups: ElementMarkup[]
-  ): string {
+  private generateCodeToCheckMutationsAfterInteraction(mutations: DOMMutationAction[]): string {
     let code = '';
     mutations.forEach(mutation => {
       if (mutation.type === 'attributes') {
@@ -398,8 +396,7 @@ class PuppeteerTestGenerator {
   private generateCodeForSyncActionChunk(
     chunk: Action[],
     index: number,
-    actionChunks: Readonly<Action[][]>,
-    initMarkups: ElementMarkup[]
+    actionChunks: Readonly<Action[][]>
   ): string {
     let code = '';
 
@@ -415,8 +412,8 @@ class PuppeteerTestGenerator {
         mutations.length === 0 ? '(this action caused no changes)' : ''
       }\n`;
     }
-    // generate code to simulate user action
-    code += this.generateCodeForSimulatingUserAction(interaction);
+    // generate code to execute user action
+    code += this.generateCodeToExecuteUserAction(interaction);
 
     if (this.addComments && mutations.length > 0) {
       code += `\n\n// check elements after '${interaction.eventName}' on '[data-hook="${
@@ -424,15 +421,14 @@ class PuppeteerTestGenerator {
       }"] element'\n`;
     }
     // generate code to check values after interaction(user action)
-    code += this.generateCodeForCheckingValuesAfterInteraction(mutations, initMarkups);
+    code += this.generateCodeToCheckMutationsAfterInteraction(mutations);
     return code;
   }
 
   private generateCodeForAsyncActionChunk(
     chunk: Action[],
     index: number,
-    actionChunks: Readonly<Action[][]>,
-    initMarkups: ElementMarkup[]
+    actionChunks: Readonly<Action[][]>
   ): string {
     let code = '';
 
@@ -461,10 +457,7 @@ class PuppeteerTestGenerator {
               interceptedRequest.url() === '${requestAction.url}' &&
               interceptedRequest.method() === '${requestAction.method}'
             ) {
-              ${this.generateCodeForCheckingValuesAfterInteraction(
-                mutationsRaisedByUserInteraction,
-                initMarkups
-              )}
+              ${this.generateCodeToCheckMutationsAfterInteraction(mutationsRaisedByUserInteraction)}
           };
           `
           )
@@ -482,7 +475,7 @@ class PuppeteerTestGenerator {
     } else {
       code += this.generateCodeToWaitRequests(
         requestActions,
-        this.generateCodeForSimulatingUserAction(userInteraction, false, true)
+        this.generateCodeToExecuteUserAction(userInteraction, false, true)
       );
     }
 
@@ -497,10 +490,7 @@ class PuppeteerTestGenerator {
       mutation => isDomMutationAction(mutation) && mutation.raisedByRequest
     ) as DOMMutationAction[];
 
-    code += this.generateCodeForCheckingValuesAfterInteraction(
-      mutationsRaisedByRequest,
-      initMarkups
-    );
+    code += this.generateCodeToCheckMutationsAfterInteraction(mutationsRaisedByRequest);
 
     return code;
   }

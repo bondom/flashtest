@@ -11,7 +11,7 @@ var args = process.argv.slice(2);
 let port = SERVER_DEFAULT_PORT;
 if (args.length >= 2 && args[0] === '-p') {
   port = parseInt(args[1]);
-};
+}
 
 if (isNaN(port)) {
   console.error('Port should be a number');

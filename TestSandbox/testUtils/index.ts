@@ -2,12 +2,15 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as puppeteer from 'puppeteer';
 import * as format from 'prettier-eslint';
+import * as util from 'util';
 
-export const readTestContent = (fileName: string) => {
-  return fs.readFileSync(path.resolve(__dirname, '../', `components/${fileName}`), {
+const readFile = util.promisify(fs.readFile);
+
+export async function readTestContent(fileName: string) {
+  return await readFile(path.resolve(__dirname, '../', `components/${fileName}`), {
     encoding: 'utf-8'
   });
-};
+}
 
 export async function updateTestData(page: puppeteer.Page, testName: string): Promise<any> {
   await page.click('[data-flashtest-hook="___FLASHTEST-FINISH-BUTTON"]');

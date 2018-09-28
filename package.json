@@ -14,6 +14,11 @@
     "type": "git",
     "url": "git://github.com/bondom/flashtest.git"
   },
+  "husky": {
+    "hooks": {
+      "pre-push": "npm test"
+    }
+  },
   "scripts": {
     "dev": "concurrently \"npm run dev-api\" \"npm run dev-sandbox\" \"npm run server\" ",
     "dev-sandbox": "webpack-dev-server --mode development --config ./TestSandbox/webpack.config.js",
@@ -25,7 +30,6 @@
     "test:browser": "jest --config ./testConfig/puppeteer/config.json",
     "test:browser-u": "cross-env JEST_UPDATE_DATA_ENV=true jest --config ./testConfig/puppeteer/config.json",
     "test:browser-live": "cross-env JEST_PUPPETEER_CONFIG=./testConfig/puppeteer/jest-puppeteer.config.js jest --config ./testConfig/puppeteer/config.json",
-    "prepush": "npm test",
     "fix": "eslint --ext .ts,.tsx --fix",
     "build-client": "cross-env OFF_CONSOLE=true webpack --mode=development --config src/webpack.config.js",
     "build-server": "cross-env OFF_CONSOLE=true tsc -p tsconfig.prod.json",

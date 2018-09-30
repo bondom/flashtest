@@ -1,5 +1,5 @@
 import * as fs from 'node-fs-extra';
-import Console from '../Console';
+import devConsole from '../devConsole';
 import * as format from 'prettier-eslint';
 
 import * as appRootPath from 'app-root-path';
@@ -10,7 +10,7 @@ export async function save(
   testsFolder: string = '/'
 ): Promise<any> {
   const filePath = appRootPath + '/' + testsFolder + '/' + fileName + '.spec.generated.js';
-  Console.log('File path: \n', filePath);
+  devConsole.log('File path: \n', filePath);
   try {
     fs.outputFileSync(filePath, format({ text: code }));
     return Promise.resolve();

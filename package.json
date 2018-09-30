@@ -20,7 +20,7 @@
     }
   },
   "scripts": {
-    "dev": "concurrently \"npm run dev-api\" \"npm run dev-sandbox\" \"npm run server\" ",
+    "dev": "concurrently -n  dev-api,dev-sandbox,server \"npm run dev-api\" \"npm run dev-sandbox\" \"npm run server\" ",
     "dev-sandbox": "webpack-dev-server --mode development --config ./TestSandbox/webpack.config.js",
     "dev-api": "ts-node-dev --project ./tsconfig.json TestSandbox/testApi",
     "server": "ts-node-dev --project ./tsconfig.json src/server/",

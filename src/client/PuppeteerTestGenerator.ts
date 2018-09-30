@@ -1,5 +1,5 @@
 import Collector from './Collector';
-import DataHandler from './DataHandler';
+import prepareToCodeGenerating from './prepareToCodeGenerating';
 import ActionsHandler from './ActionsHandler';
 import {
   isUserInteractionAction,
@@ -8,20 +8,20 @@ import {
   isDomMutationAction
 } from './helper';
 import {
-  Action,
   ElementMarkup,
   DOMMutationAction,
   UserInteractionAction,
-  RequestAction
+  RequestAction,
+  ReadonlyActionsArray,
+  ReadonlyChunksArray
 } from './types';
 
 import { SERVER_URI, SERVER_DEFAULT_PORT } from './Constants';
 
-import Console from '../Console';
+import devConsole from '../devConsole';
 
 class PuppeteerTestGenerator {
   collector: Collector;
-  dataHandler: DataHandler;
   actionsHandler: ActionsHandler;
   duplicateEventsArray = ['keydown', 'keypress', 'input', 'keyup'];
   addComments: boolean;
@@ -30,31 +30,34 @@ class PuppeteerTestGenerator {
   testName?: string;
   testsFolder?: string;
   serverUrl: string;
+  mockApiResponses: boolean;
 
   constructor({
     addComments = true,
-    indicatorQuerySelector,
     saveToFs,
+    mockApiResponses,
+    indicatorQuerySelector,
     errorsArray,
     testName,
     testsFolder,
     serverPort
   }: {
     addComments: boolean;
-    indicatorQuerySelector?: string;
     saveToFs: boolean;
+    mockApiResponses: boolean;
+    indicatorQuerySelector?: string;
     errorsArray: string[];
     testName?: string;
     testsFolder?: string;
     serverPort?: number;
   }) {
     this.saveToFs = saveToFs;
-    this.dataHandler = new DataHandler();
     this.actionsHandler = new ActionsHandler();
     this.addComments = addComments;
     this.testName = testName;
     this.testsFolder = testsFolder;
     this.serverUrl = `http://localhost:${serverPort || SERVER_DEFAULT_PORT}/${SERVER_URI}`;
+    this.mockApiResponses = mockApiResponses;
     this.collector = new Collector({
       indicatorQuerySelector,
       errorsArray,
@@ -118,22 +121,17 @@ class PuppeteerTestGenerator {
         'Actions array is empty, test will be empty, please reload page and interact with elements on page'
       );
     }
-    const { handledActions, handledInitialMarkup } = this.dataHandler.handleData(
-      actions,
-      initialMarkup
-    );
 
-    const transformedActionChunks: Readonly<Action[][]> = await this.actionsHandler.handle(
-      handledActions
-    );
+    const actionChunks: ReadonlyChunksArray = await this.actionsHandler.handle(actions);
+    const preparedActionChunks = prepareToCodeGenerating(actionChunks);
 
-    const generatedCode = this.generateCode(transformedActionChunks, handledInitialMarkup, url);
-    Console.log('Generated code: ', generatedCode);
+    const generatedCode = this.generateCode(preparedActionChunks, initialMarkup, url);
+    devConsole.log('Generated code: ', generatedCode);
     return generatedCode;
   }
 
   generateCode(
-    actionChunks: Readonly<Action[][]>,
+    actionChunks: ReadonlyChunksArray,
     initMarkups: ElementMarkup[],
     url: string
   ): string {
@@ -223,7 +221,7 @@ class PuppeteerTestGenerator {
     );
   }
 
-  private generateTestCaseCode(actionChunks: Readonly<Action[][]>, initMarkups: ElementMarkup[]) {
+  private generateTestCaseCode(actionChunks: ReadonlyChunksArray, initMarkups: ElementMarkup[]) {
     const allMutations: DOMMutationAction[] = getMutationsFromActionChunks(actionChunks);
 
     const initMarkupsThatChanged = this.getInitMarkupThatChanged(initMarkups, allMutations);
@@ -277,7 +275,7 @@ class PuppeteerTestGenerator {
         page.waitForResponse(
           response =>
             response.url() === '${requestAction.url}' &&
-            response.status() === ${requestAction.responseStatus}
+            response.status() === ${requestAction.response.status}
         ),
       `
         )
@@ -359,7 +357,7 @@ class PuppeteerTestGenerator {
 
   private generateCodeToCheckMutationsBeforeInteraction(
     mutations: DOMMutationAction[],
-    actionChunks: Readonly<Action[][]>,
+    actionChunks: ReadonlyChunksArray,
     index: number
   ): string {
     const previousMutations = getMutationsFromActionChunks(actionChunks.slice(0, index));
@@ -394,9 +392,9 @@ class PuppeteerTestGenerator {
   }
 
   private generateCodeForSyncActionChunk(
-    chunk: Action[],
+    chunk: ReadonlyActionsArray,
     index: number,
-    actionChunks: Readonly<Action[][]>
+    actionChunks: ReadonlyChunksArray
   ): string {
     let code = '';
 
@@ -426,9 +424,9 @@ class PuppeteerTestGenerator {
   }
 
   private generateCodeForAsyncActionChunk(
-    chunk: Action[],
+    chunk: ReadonlyActionsArray,
     index: number,
-    actionChunks: Readonly<Action[][]>
+    actionChunks: ReadonlyChunksArray
   ): string {
     let code = '';
 
@@ -442,29 +440,33 @@ class PuppeteerTestGenerator {
       mutation => !mutation.raisedByRequest
     );
 
-    Console.log('mutationsRaisedByUserInteraction: ', mutationsRaisedByUserInteraction);
+    devConsole.log('mutationsRaisedByUserInteraction: ', mutationsRaisedByUserInteraction);
     const callbackName = `interceptRequestCallback${requestActions[0].id}`;
 
+    // TODO: change
     if (mutationsRaisedByUserInteraction.length > 0) {
       code += `
-      ${this.addComments ? '// check DOM while requests are processing' : ''}
-      await page.setRequestInterception(true);
-      const ${callbackName} = async interceptedRequest => {
-        ${requestActions
-          .map(
-            requestAction => `
-            if (
-              interceptedRequest.url() === '${requestAction.url}' &&
-              interceptedRequest.method() === '${requestAction.method}'
-            ) {
-              ${this.generateCodeToCheckMutationsAfterInteraction(mutationsRaisedByUserInteraction)}
-          };
-          `
-          )
-          .join('\n')}
-      interceptedRequest.continue();
-      };
-      page.on('request', ${callbackName});
+        ${this.addComments ? '// check DOM while requests are processing' : ''}
+        await page.setRequestInterception(true);
+        const ${callbackName} = async interceptedRequest => {
+          ${requestActions
+            .map(
+              requestAction => `
+              if (
+                interceptedRequest.url() === '${requestAction.url}' &&
+                interceptedRequest.method() === '${requestAction.method}'
+              ) {
+                ${this.generateCodeToCheckMutationsAfterInteraction(
+                  mutationsRaisedByUserInteraction
+                )}
+                ${this.mockApiResponses ? this.generateCodeToMockResponse(requestAction) : ''}
+            };
+            `
+            )
+            .join('\n')}
+        ${!this.mockApiResponses ? 'interceptedRequest.continue();' : ''}
+        };
+        page.on('request', ${callbackName});
       `;
     }
 
@@ -493,6 +495,25 @@ class PuppeteerTestGenerator {
     code += this.generateCodeToCheckMutationsAfterInteraction(mutationsRaisedByRequest);
 
     return code;
+  }
+
+  private generateCodeToMockResponse(requestAction: RequestAction): string {
+    const response = requestAction.response;
+
+    const headers = { ...response.headers };
+    delete headers['content-type'];
+
+    // by default we can't read Access-Control-Allow-Origin header from Response's header,
+    // (Access-Control-Expose-Headers header should be set)
+    // so we suppose that every response has this header set
+    headers['Access-Control-Allow-Origin'] = '*';
+
+    return `interceptedRequest.respond({
+      status: ${response.status},
+      headers: ${JSON.stringify(headers)},
+      contentType: ${response.contentType},
+      body: ${response.body}
+    })`;
   }
 }
 

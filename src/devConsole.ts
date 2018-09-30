@@ -1,5 +1,5 @@
 /* eslint-disable no-console*/
-export default class Console {
+export default class devConsole {
   static log(...args: any[]) {
     if (!process.env.OFF_CONSOLE) console.log.apply(null, args);
   }

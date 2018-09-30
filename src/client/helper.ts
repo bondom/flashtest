@@ -3,7 +3,9 @@ import {
   UserInteractionAction,
   MutationType,
   DOMMutationAction,
-  RequestAction
+  RequestAction,
+  ReadonlyActionsArray,
+  ReadonlyChunksArray
 } from './types';
 
 function isUserInteractionAction(action: Action): action is UserInteractionAction {
@@ -41,7 +43,7 @@ function isRequestAction(action: Action): action is RequestAction {
  *  mutation2,
  * ]
  */
-function flatActionChunks(actionChunks: Readonly<Action[][]>): Readonly<Action[]> {
+function flatActionChunks(actionChunks: ReadonlyChunksArray): ReadonlyActionsArray {
   return actionChunks.reduce((acc, currVal) => {
     return acc.concat(currVal);
   }, []);
@@ -49,19 +51,19 @@ function flatActionChunks(actionChunks: Readonly<Action[][]>): Readonly<Action[]
 
 /* Methods to get particular actions from Actions array*/
 
-function getMutationsFromActions(actions: Readonly<Action[]>): DOMMutationAction[] {
+function getMutationsFromActions(actions: ReadonlyActionsArray): DOMMutationAction[] {
   return actions.filter(action => isDomMutationAction(action)) as DOMMutationAction[];
 }
 
-function getRequestsFromActions(actions: Readonly<Action[]>): RequestAction[] {
+function getRequestsFromActions(actions: ReadonlyActionsArray): RequestAction[] {
   return actions.filter(action => isRequestAction(action)) as RequestAction[];
 }
 
-function getMutationsFromActionChunks(actionChunks: Readonly<Action[][]>): DOMMutationAction[] {
+function getMutationsFromActionChunks(actionChunks: ReadonlyChunksArray): DOMMutationAction[] {
   return getMutationsFromActions(flatActionChunks(actionChunks));
 }
 
-function getRequestsFromActionChunks(actionChunks: Readonly<Action[][]>): RequestAction[] {
+function getRequestsFromActionChunks(actionChunks: ReadonlyChunksArray): RequestAction[] {
   return getRequestsFromActions(flatActionChunks(actionChunks));
 }
 

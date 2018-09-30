@@ -179,7 +179,7 @@ import {
   initMarkups as todoListInitMarkups
 } from './test-data/TodoList-data';
 
-describe('PuppeteerTestGenerator.transformDataAndGenerateCode', () => {
+describe('PuppeteerTestGenerator.transformDataAndGenerateCode: main cases', () => {
   test('merged click and focus actions', async () => {
     const testGenerator = new PuppeteerTestGenerator({
       testName: 'MergedClickFocus',

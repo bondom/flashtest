@@ -11,7 +11,8 @@ const Statuses = {
 class CollectorComponent extends React.Component {
   static defaultProps = {
     saveToFs: false,
-    addComments: true
+    addComments: true,
+    mockApiResponses: false
   };
 
   constructor(props) {
@@ -28,7 +29,8 @@ class CollectorComponent extends React.Component {
         addComments: props.addComments,
         indicatorQuerySelector: '[data-flashtest-hook="___FLASHTEST-INDICATOR"]',
         serverPort: props.serverPort,
-        errorsArray
+        errorsArray,
+        mockApiResponses: props.mockApiResponses
       }),
 
       error: undefined,
@@ -216,6 +218,7 @@ CollectorComponent.propTypes = {
   saveToFs: PropTypes.bool,
   testsFolder: PropTypes.string,
   addComments: PropTypes.bool,
-  serverPort: PropTypes.number
+  serverPort: PropTypes.number,
+  mockApiResponses: PropTypes.bool
 };
 export default CollectorComponent;

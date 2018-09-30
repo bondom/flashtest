@@ -1,36 +1,34 @@
-import Console from '../Console';
+import devConsole from '../devConsole';
 import {
   Action,
   ElementMarkup,
   EventName,
   MutationType,
   DOMMutationAction,
-  UserInteractionAction
+  UserInteractionAction,
+  RequestAction
 } from './types';
 import { isRequestAction, isUserInteractionAction } from './helper';
 
-/* 
-
-  There are four types of data that are collected:
-  1. Initial outer HTML of elements
-  2. User interactions(are collected via addEventListener):
-    - 'click'
-    - 'input',
-    - ...
-  3. DOM changes(result of user interaction and/or request to backend) - are collected via MutationObserver:
-    - attributes
-      a) value
-      b) disabled
-      c) className
-        ...
-    - characterData (text) - in this case we find nearest parent with data-hook
-    - childList - is useful in cases when CharacterData node or HTMLElement was added to page, or deleted from it
-  4. Requests sent with window.fetch: url, method, body(body isn't recorded yet)
-  NOT SOLVED PROBLEMS:
-  1) If input[type="checkbox"] or input[type="radio"] is clicked =>
-      it becomes checked, but this change will not be collected, because HTML isn't changed. 
-  2) If value in <select> is selected => DOM also isn't changed
-*/
+// There are four types of data that are collected:
+// 1. Initial outer HTML of elements
+// 2. User interactions(are collected via addEventListener):
+//   - 'click'
+//   - 'input',
+//   - ...
+// 3. DOM changes(result of user interaction and/or request to backend) - are collected via MutationObserver:
+//   - attributes
+//     a) value
+//     b) disabled
+//     c) className
+//       ...
+//   - characterData (text) - in this case we find nearest parent with data-hook
+//   - childList - is useful in cases when CharacterData node or HTMLElement was added to page, or deleted from it
+// 4. Requests sent with window.fetch: url, method, body(body isn't recorded yet)
+// NOT SOLVED PROBLEMS:
+// 1) If input[type="checkbox"] or input[type="radio"] is clicked =>
+//     it becomes checked, but this change will not be collected, because HTML isn't changed.
+// 2) If value in <select> is selected => DOM also isn't changed
 
 class Collector {
   url: string;
@@ -160,7 +158,7 @@ class Collector {
     this.eventListenersCallbacksMap.forEach(({ callback, eventName }) => {
       el.addEventListener(eventName, callback);
     });
-    Console.log(`Registered ${eventNames} event listeners on: `, el);
+    devConsole.log(`Registered ${eventNames} event listeners on: `, el);
   }
 
   private unregisterEventListeners() {
@@ -170,7 +168,7 @@ class Collector {
       this.eventListenersCallbacksMap.forEach(({ callback, eventName }) => {
         el.removeEventListener(eventName, callback);
       });
-      Console.log(`Unregistered ${eventNames} event listeners on: `, el);
+      devConsole.log(`Unregistered ${eventNames} event listeners on: `, el);
     });
   }
 
@@ -306,18 +304,18 @@ class Collector {
 
   private eventListener(e: Event, eventName: string) {
     if (this.requestStatus === 'ended') {
-      Console.log(`Set request status to 'none'`);
+      devConsole.log(`Set request status to 'none'`);
       this.requestStatus = 'none';
     }
 
-    Console.group(`${eventName} event handler callback is called`);
+    devConsole.group(`${eventName} event handler callback is called`);
     if (!(e.target instanceof HTMLElement) || !e.target.hasAttribute('data-hook')) {
-      Console.log(
+      devConsole.log(
         `Skipping ${eventName} for `,
         e.target,
         ` because it isn't HTMLElement or doesn't have data-hook attribute`
       );
-      Console.groupEnd();
+      devConsole.groupEnd();
       return;
     }
 
@@ -333,8 +331,8 @@ class Collector {
 
     if (e.target instanceof HTMLButtonElement && eventName === 'blur') {
       // blur event is triggered on button even when DOM changes!!!
-      Console.log(`Skipping 'blur' event for button`);
-      Console.groupEnd();
+      devConsole.log(`Skipping 'blur' event for button`);
+      devConsole.groupEnd();
       return;
     }
 
@@ -359,8 +357,8 @@ class Collector {
       interaction.inputType = e.target.getAttribute('type')!;
     }
     this.actions.push(interaction);
-    Console.log(`Collected '${eventName}' event for: \n`, e.target);
-    Console.groupEnd();
+    devConsole.log(`Collected '${eventName}' event for: \n`, e.target);
+    devConsole.groupEnd();
     return;
   }
 
@@ -382,8 +380,8 @@ class Collector {
 
       this.requestStatusOfMutation = this.requestStatus;
       setTimeout(() => {
-        Console.group('MutationObserver callback is called');
-        Console.log('Mutation batch:', mutationRecords);
+        devConsole.group('MutationObserver callback is called');
+        devConsole.log('Mutation batch:', mutationRecords);
 
         const handledMutationRecords = this.deleteSimilarMutationsRecords(mutationRecords);
         handledMutationRecords.forEach(record => {
@@ -409,7 +407,7 @@ class Collector {
           }
         });
 
-        Console.groupEnd();
+        devConsole.groupEnd();
       }, 0);
     });
 
@@ -447,7 +445,7 @@ class Collector {
         ) {
           const index = handledMutationRecords.findIndex(el => el === similarBatchedRecord);
           handledMutationRecords.splice(index, 1);
-          Console.log(
+          devConsole.log(
             'Skipping two mutation records: first for adding Text Node, second for deleting TextNode - they are mutually exclusive'
           );
           return;
@@ -467,7 +465,7 @@ class Collector {
       addedNodes.length == 0 &&
       Array.from(record.removedNodes).every(node => node instanceof Text && node.data === '')
     ) {
-      Console.log(
+      devConsole.log(
         'Skipping recording mutation for removed Text Node, because its value was empty string'
       );
       return;
@@ -477,7 +475,7 @@ class Collector {
       addedNodes.length > 0 &&
       addedNodes.every(node => node instanceof Text && node.data === '')
     ) {
-      Console.log(
+      devConsole.log(
         'Skipping recording mutation for added Text Nodes, because their values are empty strings'
       );
       return;
@@ -522,7 +520,7 @@ class Collector {
     // </div>
     // And user enters value in input
     if (this.elementHasInteractionElementsAsChildren(parentElement)) {
-      Console.log(
+      devConsole.log(
         `Skipping recording mutation for Text Node, because parent of this Text Node has child with tagName equal to one of: INPUT, BUTTON, TEXTAREA, SELECT`
       );
       return;
@@ -573,7 +571,7 @@ class Collector {
             element
           );
           if (childrenWithDataHookAttribute.length > 0) {
-            Console.log(
+            devConsole.log(
               `Next element has children with data-hook attribute, so ${type} mutation
             will be handled for its children: `,
               element
@@ -587,7 +585,7 @@ class Collector {
             });
             return handledChildrenNumber;
           } else {
-            Console.log(
+            devConsole.log(
               `Next element has no children with data-hook attribute, so ${type} mutation
             will be handled for this element itself: `,
               element
@@ -661,7 +659,7 @@ class Collector {
   }): boolean {
     const dataHook = element.getAttribute('data-hook');
     if (!dataHook) {
-      Console.log('Skipped mutation due lack of [data-hook] attribute: ', element);
+      devConsole.log('Skipped mutation due lack of [data-hook] attribute: ', element);
       return false;
     }
 
@@ -684,7 +682,7 @@ class Collector {
       collectedMutation.raisedByRequest = true;
     }
 
-    Console.log('Collected mutation: ', collectedMutation);
+    devConsole.log('Collected mutation: ', collectedMutation);
     this.actions.push(collectedMutation);
     return true;
   }
@@ -706,7 +704,7 @@ class Collector {
   }
 
   finish() {
-    Console.group('Collector.finish');
+    devConsole.group('Collector.finish');
     this.unregisterEventListeners();
     if (this.mutationObserver) this.mutationObserver.disconnect();
 
@@ -716,9 +714,9 @@ class Collector {
     // @ts-ignore
     window.INITIAL_MARKUP = this.initialMarkup;
 
-    Console.log('Collected data: ', JSON.parse(JSON.stringify(this.actions)));
-    Console.log('Initial html of elements: ', JSON.parse(JSON.stringify(this.initialMarkup)));
-    Console.groupEnd();
+    devConsole.log('Collected data: ', JSON.parse(JSON.stringify(this.actions)));
+    devConsole.log('Initial html of elements: ', JSON.parse(JSON.stringify(this.initialMarkup)));
+    devConsole.groupEnd();
   }
 
   private allRequestsAreFinished() {
@@ -739,18 +737,21 @@ class Collector {
       }
       const method: string = arguments[1] ? arguments[1].method || 'get' : 'get';
       const newId = ++lastRequestId;
-      const requestAction = {
+
+      // responseData property is required for RequestAction, it will be assigned in response
+      // so to avoid typescript error we use 'as RequestAction'
+      const requestAction: RequestAction = {
         id: newId,
         url,
         method,
-        responseStatus: 0,
         finished: false
-      };
+      } as RequestAction;
 
       if (self.indicator) {
         self.indicator.style.backgroundColor = 'red';
       }
 
+      // !!!NOTE: this comment is related to commented setTimeout functionality below,
       // we push 'pushing of RequestAction' to callback queue,
       // it is needed to do easier handling of async actions in ActionsHandler
       // Explanation: after user does some action which leads to request
@@ -759,16 +760,42 @@ class Collector {
       // - focusin click in case of click
 
       // setTimeout(() => {
-      Console.log(`Pushed RequestAction to result array: `, requestAction);
+      devConsole.log(`Pushed RequestAction to result array: `, requestAction);
       self.actions.push(requestAction);
       self.requestStatus = 'processing';
       // }, 0);
 
-      return originalFetch.apply(this, arguments).then((response: Response) => {
+      return originalFetch.apply(this, arguments).then(async (response: Response) => {
         // setTimeout(() => {
         self.requestStatus = 'ended';
-        Console.log('Response has just arrived, set requestStatus to ended');
-        requestAction.responseStatus = response.status;
+        devConsole.log('Response has just arrived, set requestStatus to ended');
+
+        const clonedResponseForJson = response.clone();
+        const clonedResponseForText = response.clone();
+        let body: string;
+        try {
+          // @ts-ignore
+          const jsonRes: JSON = await clonedResponseForJson.json();
+          body = JSON.stringify(jsonRes);
+        } catch (error) {
+          body = await clonedResponseForText.text();
+        }
+
+        const headersObj: {
+          [key: string]: string;
+        } = {};
+
+        response.headers.forEach((value: string, key: string) => {
+          headersObj[key] = value;
+        });
+
+        requestAction.response = {
+          status: response.status,
+          headers: headersObj,
+          contentType: response.headers.get('content-type'),
+          body
+        };
+
         requestAction.finished = true;
         // browser encodes url also, so we update url with encoded one
         requestAction.url = response.url;

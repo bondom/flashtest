@@ -1,3 +1,5 @@
+export type ElementMarkup = { dataHook: string; outerHTML: string };
+
 // "attributes" - attribute of Element changed
 // "childList-added-node" - means that this node was added
 // "childList-removed-node" - means that this node was removed
@@ -5,10 +7,6 @@
 // "characterData" - some text was inserted or removed, in this case we get nearest parent Element,
 //  if this parent Element has [data-hook], we collect info
 //  (Such approach leads to bug with contentEditable Element, see registerMutationObservers file)
-//
-// For all types except 'attributes' we compare outerHTML,
-// for 'attributes' type we compare actual attribute,
-// maybe in future it will change
 export type MutationType =
   | 'characterData'
   | 'childList'
@@ -53,10 +51,18 @@ export type RequestAction = {
   id: number;
   url: string;
   method: string;
-  responseStatus: number;
+  response: {
+    status: number;
+    headers: {
+      [key: string]: string;
+    };
+    contentType: string | null;
+    body: string;
+  };
   finished: boolean;
 };
 
-export type ElementMarkup = { dataHook: string; outerHTML: string };
-
 export type Action = DOMMutationAction | UserInteractionAction | RequestAction;
+
+export type ReadonlyActionsArray = ReadonlyArray<Readonly<Action>>;
+export type ReadonlyChunksArray = ReadonlyArray<ReadonlyActionsArray>;

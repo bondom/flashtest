@@ -24,7 +24,7 @@ describe('AsyncButtonMockedJsonResponse', () => {
         await page.$eval('[data-hook="async-button__get-submit-btn"]', el => el.disabled)
       ).toEqual(false);
 
-      // check DOM while requests are processing
+      // check DOM while requests are processing and mock api responses
       await page.setRequestInterception(true);
       const interceptRequestCallback1 = async interceptedRequest => {
         if (

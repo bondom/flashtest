@@ -45,3 +45,4 @@ export * from './RemovedElement';
 
 // Mocked API Response
 export * from './AsyncButtonMockedJsonResponse';
+export * from './AsyncButtonMockedJsonResponseWithoutMutatingDOM';

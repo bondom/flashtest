@@ -41,7 +41,8 @@ import {
   RemovedTextNode,
   RemovedElement,
   // mocked api responses
-  AsyncButtonMockedJsonResponse
+  AsyncButtonMockedJsonResponse,
+  AsyncButtonMockedJsonResponseWithoutMutatingDOM
 } from './components';
 
 import * as styles from './styles.scss';
@@ -100,6 +101,9 @@ const App = () => (
           </div>
           <div>
             <Link to="/asyncButtonMockedJsonResponse">AsyncButtonMockedJsonResponse</Link>
+            <Link to="/asyncButtonMockedJsonResponseWithoutMutatingDOM">
+              AsyncButtonMockedJsonResponseWithoutMutatingDOM
+            </Link>
           </div>
         </nav>
         <Switch>
@@ -150,6 +154,11 @@ const App = () => (
             exact
             path="/asyncButtonMockedJsonResponse"
             component={AsyncButtonMockedJsonResponse}
+          />
+          <Route
+            exact
+            path="/asyncButtonMockedJsonResponseWithoutMutatingDOM"
+            component={AsyncButtonMockedJsonResponseWithoutMutatingDOM}
           />
           <Redirect to="/login" />
         </Switch>

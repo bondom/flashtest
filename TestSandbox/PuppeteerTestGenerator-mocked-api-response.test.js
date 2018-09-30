@@ -12,6 +12,11 @@ import {
   initMarkups as asyncButtonJsonResponseInitMarkups
 } from './test-data/AsyncButtonMockedJsonResponse-data';
 
+import {
+  actions as asyncButtonWithoutMutatingDOMActions,
+  initMarkups as asyncButtonWithoutMutatingDOMInitMarkups
+} from './test-data/AsyncButtonMockedJsonResponseWithoutMutatingDOM-data';
+
 describe('PuppeteerTestGenerator.transformDataAndGenerateCode: mocked api responses', () => {
   test(`async button: request is sent when button is clicked
         (button is disabled while request is running), 
@@ -51,5 +56,26 @@ describe('PuppeteerTestGenerator.transformDataAndGenerateCode: mocked api respon
       'mocked-api-responses/PuppeteerTestGenerator-AsyncButtonMockedJsonResponse.unused.js'
     );
     expect(formatCode(code)).toEqual(formatCode(asyncButtonJsonResponseExpectedCode));
+  });
+
+  test(`async button: request is sent when button is clicked, 
+        (button isn't disabled while request is running, so no DOM is mutated when request is sent), 
+        result of request changes DOM, 
+        response is mocked with json`, async () => {
+    const testGenerator = new PuppeteerTestGenerator({
+      testName: 'AsyncButtonMockedJsonResponseWithoutMutatingDOM',
+      addComments: true,
+      mockApiResponses: true
+    });
+    testGenerator.collector.url =
+      'http://localhost:8001/asyncButtonMockedJsonResponseWithoutMutatingDOM';
+    testGenerator.collector.initialMarkup = asyncButtonWithoutMutatingDOMInitMarkups;
+    testGenerator.collector.actions = asyncButtonWithoutMutatingDOMActions;
+
+    const code = await testGenerator.transformDataAndGenerateCode();
+    const asyncButtonWithoutMutatingDOMExpectedCode = await readTestContent(
+      'mocked-api-responses/PuppeteerTestGenerator-AsyncButtonMockedJsonResponseWithoutMutatingDOM.unused.js'
+    );
+    expect(formatCode(code)).toEqual(formatCode(asyncButtonWithoutMutatingDOMExpectedCode));
   });
 });

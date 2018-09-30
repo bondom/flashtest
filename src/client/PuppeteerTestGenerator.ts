@@ -444,9 +444,15 @@ class PuppeteerTestGenerator {
     const callbackName = `interceptRequestCallback${requestActions[0].id}`;
 
     // TODO: change
-    if (mutationsRaisedByUserInteraction.length > 0) {
+    if (mutationsRaisedByUserInteraction.length > 0 || this.mockApiResponses) {
       code += `
-        ${this.addComments ? '// check DOM while requests are processing' : ''}
+        ${
+          this.addComments
+            ? `// check DOM while requests are processing ${
+                this.mockApiResponses ? 'and mock api responses' : ''
+              }`
+            : ''
+        }
         await page.setRequestInterception(true);
         const ${callbackName} = async interceptedRequest => {
           ${requestActions

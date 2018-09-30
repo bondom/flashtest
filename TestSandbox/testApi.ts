@@ -14,6 +14,15 @@ app.get('/toUpperCase/:delay/:arg', (req: express.Request, res: express.Response
   }, delay);
 });
 
+app.get('/wrapIntoObject/:delay/:arg', (req: express.Request, res: express.Response) => {
+  const { delay, arg } = req.params;
+  setTimeout(() => {
+    res.send({
+      wrappedArg: arg
+    });
+  }, delay);
+});
+
 app.get('/base64/:delay/:arg', (req: express.Request, res: express.Response) => {
   const { delay, arg } = req.params;
   const result = arg ? Buffer.from(arg, 'base64') : '';

@@ -34,12 +34,14 @@ import {
   LoginForm,
   RegistrationForm,
   TodoList,
-  // merging
+  // actions merging
   MergedClickFocus,
   MergedClickBlur,
   DynamicallyAddedButton,
   RemovedTextNode,
-  RemovedElement
+  RemovedElement,
+  // mocked api responses
+  AsyncButtonMockedJsonResponse
 } from './components';
 
 import * as styles from './styles.scss';
@@ -96,6 +98,9 @@ const App = () => (
             <Link to="/registrationForm">RegistrationForm</Link>
             <Link to="/todoList">TodoList</Link>
           </div>
+          <div>
+            <Link to="/asyncButtonMockedJsonResponse">AsyncButtonMockedJsonResponse</Link>
+          </div>
         </nav>
         <Switch>
           <Route exact path="/mergedClickFocus" component={MergedClickFocus} />
@@ -141,6 +146,11 @@ const App = () => (
           <Route exact path="/buttonComplex" component={ButtonComplex} />
           <Route exact path="/registrationForm" component={RegistrationForm} />
           <Route exact path="/todoList" component={TodoList} />
+          <Route
+            exact
+            path="/asyncButtonMockedJsonResponse"
+            component={AsyncButtonMockedJsonResponse}
+          />
           <Redirect to="/login" />
         </Switch>
       </div>

@@ -443,8 +443,10 @@ class PuppeteerTestGenerator {
     devConsole.log('mutationsRaisedByUserInteraction: ', mutationsRaisedByUserInteraction);
     const callbackName = `interceptRequestCallback${requestActions[0].id}`;
 
-    // TODO: change
-    if (mutationsRaisedByUserInteraction.length > 0 || this.mockApiResponses) {
+    if (
+      mutationsRaisedByUserInteraction.length > 0 ||
+      this.atLeastOneResponseShouldMocked(requestActions)
+    ) {
       code += `
         ${
           this.addComments
@@ -465,12 +467,16 @@ class PuppeteerTestGenerator {
                 ${this.generateCodeToCheckMutationsAfterInteraction(
                   mutationsRaisedByUserInteraction
                 )}
-                ${this.mockApiResponses ? this.generateCodeToMockResponse(requestAction) : ''}
+                ${
+                  this.responseShouldBeMocked(requestAction)
+                    ? this.generateCodeToMockResponse(requestAction)
+                    : ''
+                }
             };
             `
             )
             .join('\n')}
-        ${!this.mockApiResponses ? 'interceptedRequest.continue();' : ''}
+        interceptedRequest.continue();
         };
         page.on('request', ${callbackName});
       `;
@@ -498,9 +504,20 @@ class PuppeteerTestGenerator {
       mutation => isDomMutationAction(mutation) && mutation.raisedByRequest
     ) as DOMMutationAction[];
 
+    if (this.addComments && mutationsRaisedByRequest.length > 0) {
+      code += '\n// check mutations after response\n';
+    }
     code += this.generateCodeToCheckMutationsAfterInteraction(mutationsRaisedByRequest);
 
     return code;
+  }
+
+  private responseShouldBeMocked = (requestAction: RequestAction) => {
+    return this.mockApiResponses && requestAction.response.shouldBeMocked;
+  };
+
+  private atLeastOneResponseShouldMocked(requestActions: RequestAction[]) {
+    return requestActions.some(this.responseShouldBeMocked);
   }
 
   private generateCodeToMockResponse(requestAction: RequestAction): string {
@@ -519,7 +536,7 @@ class PuppeteerTestGenerator {
       headers: ${JSON.stringify(headers)},
       contentType: ${response.contentType},
       body: ${response.body}
-    })`;
+    }); return;`;
   }
 }
 

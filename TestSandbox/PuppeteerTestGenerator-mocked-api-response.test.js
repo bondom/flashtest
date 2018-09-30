@@ -17,6 +17,11 @@ import {
   initMarkups as asyncButtonWithoutMutatingDOMInitMarkups
 } from './test-data/AsyncButtonMockedJsonResponseWithoutMutatingDOM-data';
 
+import {
+  actions as asyncButtonMockedImageResponseActions,
+  initMarkups as asyncButtonMockedImageResponseInitMarkups
+} from './test-data/AsyncButtonMockedImageResponse-data';
+
 describe('PuppeteerTestGenerator.transformDataAndGenerateCode: mocked api responses', () => {
   test(`async button: request is sent when button is clicked
         (button is disabled while request is running), 
@@ -77,5 +82,24 @@ describe('PuppeteerTestGenerator.transformDataAndGenerateCode: mocked api respon
       'mocked-api-responses/PuppeteerTestGenerator-AsyncButtonMockedJsonResponseWithoutMutatingDOM.unused.js'
     );
     expect(formatCode(code)).toEqual(formatCode(asyncButtonWithoutMutatingDOMExpectedCode));
+  });
+
+  test(`async button: request to get image is sent when button is clicked, 
+        result of request changes src attribute of img, this change isn't checked in tests,
+        because src value is base64(too long)`, async () => {
+    const testGenerator = new PuppeteerTestGenerator({
+      testName: 'AsyncButtonMockedImageResponse',
+      addComments: true,
+      mockApiResponses: true
+    });
+    testGenerator.collector.url = 'http://localhost:8001/asyncButtonMockedImageResponse';
+    testGenerator.collector.initialMarkup = asyncButtonMockedImageResponseInitMarkups;
+    testGenerator.collector.actions = asyncButtonMockedImageResponseActions;
+
+    const code = await testGenerator.transformDataAndGenerateCode();
+    const asyncButtonMockedImageResponseExpectedCode = await readTestContent(
+      'mocked-api-responses/PuppeteerTestGenerator-AsyncButtonMockedImageResponse.unused.js'
+    );
+    expect(formatCode(code)).toEqual(formatCode(asyncButtonMockedImageResponseExpectedCode));
   });
 });

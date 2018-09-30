@@ -35,6 +35,8 @@ describe('AsyncInputSlowTypings', () => {
 
         await page.type('[data-hook="async-input__input"]', 'p')
       ]);
+
+      // check mutations after response
       expect(await page.$eval('[data-hook="async-input__result"]', el => el.innerHTML)).toEqual(
         'Get Request Result: P'
       );
@@ -74,6 +76,7 @@ describe('AsyncInputSlowTypings', () => {
       page.removeListener('request', interceptRequestCallback2);
       await page.setRequestInterception(false);
 
+      // check mutations after response
       expect(await page.$eval('[data-hook="async-input__result"]', el => el.innerHTML)).toEqual(
         'Get Request Result: PA'
       );
@@ -113,6 +116,7 @@ describe('AsyncInputSlowTypings', () => {
       page.removeListener('request', interceptRequestCallback3);
       await page.setRequestInterception(false);
 
+      // check mutations after response
       expect(await page.$eval('[data-hook="async-input__result"]', el => el.innerHTML)).toEqual(
         'Get Request Result: PAS'
       );
@@ -152,6 +156,7 @@ describe('AsyncInputSlowTypings', () => {
       page.removeListener('request', interceptRequestCallback4);
       await page.setRequestInterception(false);
 
+      // check mutations after response
       expect(await page.$eval('[data-hook="async-input__result"]', el => el.innerHTML)).toEqual(
         'Get Request Result: PASS'
       );

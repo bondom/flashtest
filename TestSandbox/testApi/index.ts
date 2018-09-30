@@ -1,9 +1,20 @@
 import * as express from 'express';
+import * as path from 'path';
 import * as bodyParser from 'body-parser';
 import * as cors from 'cors';
 
 const app = express();
+
 app.use(cors());
+
+// add delay for files
+app.use('/files', (req, res, next) => {
+  setTimeout(() => {
+    next();
+  }, 50);
+});
+
+app.use('/files', express.static(path.join(__dirname, 'files')));
 app.use(bodyParser.json());
 
 app.get('/toUpperCase/:delay/:arg', (req: express.Request, res: express.Response) => {

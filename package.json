@@ -22,7 +22,7 @@
   "scripts": {
     "dev": "concurrently -n  dev-api,dev-sandbox,server \"npm run dev-api\" \"npm run dev-sandbox\" \"npm run server\" ",
     "dev-sandbox": "webpack-dev-server --mode development --config ./TestSandbox/webpack.config.js",
-    "dev-api": "ts-node-dev --project ./tsconfig.json TestSandbox/testApi",
+    "dev-api": "ts-node-dev --project ./tsconfig.json TestSandbox/testApi/index",
     "server": "ts-node-dev --project ./tsconfig.json src/server/",
     "test": "npm run test:browser-u && npm run test:enzyme",
     "test:enzyme": "cross-env OFF_CONSOLE=true jest --config ./testConfig/enzyme/config.json",

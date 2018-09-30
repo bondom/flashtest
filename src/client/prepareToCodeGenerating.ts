@@ -32,12 +32,10 @@ export default function prepareToCodeGenerating(chunks: ReadonlyChunksArray): Re
         handledChunk.push(
           Object.assign({}, action, {
             method: action.method.toUpperCase(),
-            response: {
-              status: action.response.status,
+            response: Object.assign({}, action.response, {
               contentType: handleStringOrNullValue(action.response.contentType),
-              body: handleStringOrNullValue(action.response.body),
-              headers: action.response.headers
-            }
+              body: handleStringOrNullValue(action.response.body)
+            })
           })
         );
       } else {

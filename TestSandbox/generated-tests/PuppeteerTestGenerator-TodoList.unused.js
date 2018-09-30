@@ -34,6 +34,7 @@ describe('TodoList', () => {
   it(
     'first test',
     async () => {
+      // check mutations after response
       expect(await page.$('[data-hook="todolist__loader"]')).toEqual(null);
       expect(await page.$eval('[data-hook="todolist__item-text-1"]', el => el.outerHTML)).toEqual(
         '<span data-hook="todolist__item-text-1">drink water </span>'
@@ -107,6 +108,7 @@ describe('TodoList', () => {
       page.removeListener('request', interceptRequestCallback3);
       await page.setRequestInterception(false);
 
+      // check mutations after response
       expect(await page.$('[data-hook="todolist__loader"]')).toEqual(null);
       expect(await page.$eval('[data-hook="todolist__item-text-2"]', el => el.outerHTML)).toEqual(
         '<span data-hook="todolist__item-text-2">buy banana </span>'
@@ -170,6 +172,7 @@ describe('TodoList', () => {
       page.removeListener('request', interceptRequestCallback5);
       await page.setRequestInterception(false);
 
+      // check mutations after response
       expect(await page.$('[data-hook="todolist__loader"]')).toEqual(null);
 
       // check attributes before 'click' on '[data-hook="todolist__add-new-button"]' element
@@ -265,6 +268,7 @@ describe('TodoList', () => {
       page.removeListener('request', interceptRequestCallback7);
       await page.setRequestInterception(false);
 
+      // check mutations after response
       expect(await page.$('[data-hook="todolist__loader"]')).toEqual(null);
       expect(await page.$eval('[data-hook="todolist__item-text-1"]', el => el.outerHTML)).toEqual(
         '<span data-hook="todolist__item-text-1">new item </span>'
@@ -365,6 +369,7 @@ describe('TodoList', () => {
       page.removeListener('request', interceptRequestCallback9);
       await page.setRequestInterception(false);
 
+      // check mutations after response
       expect(await page.$('[data-hook="todolist__loader"]')).toEqual(null);
       expect(await page.$eval('[data-hook="todolist__item-text-1"]', el => el.outerHTML)).toEqual(
         '<span data-hook="todolist__item-text-1">new item </span>'

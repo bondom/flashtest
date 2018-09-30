@@ -1,10 +1,10 @@
 const timeout = 30000;
 
-describe('AsyncButtonMockedJsonResponse', () => {
+describe('AsyncButtonMockedImageResponse', () => {
   let page;
   beforeAll(async () => {
     page = await global.browser.newPage();
-    await page.goto('http://localhost:8001/asyncButtonMockedJsonResponse');
+    await page.goto('http://localhost:8001/asyncButtonMockedImageResponse');
   }, timeout);
 
   afterAll(async () => {
@@ -14,11 +14,6 @@ describe('AsyncButtonMockedJsonResponse', () => {
   it(
     'first test',
     async () => {
-      // check initial outerHTML of elements
-      expect(
-        await page.$eval('[data-hook="async-button__get-request-result"]', el => el.outerHTML)
-      ).toEqual('<div data-hook="async-button__get-request-result">Get Request Result: </div>');
-
       // check attributes before 'click' on '[data-hook="async-button__get-submit-btn"]' element
       expect(
         await page.$eval('[data-hook="async-button__get-submit-btn"]', el => el.disabled)
@@ -28,21 +23,12 @@ describe('AsyncButtonMockedJsonResponse', () => {
       await page.setRequestInterception(true);
       const interceptRequestCallback1 = async interceptedRequest => {
         if (
-          interceptedRequest.url() === 'http://localhost:3002/wrapIntoObject/100/sometext' &&
+          interceptedRequest.url() === 'http://localhost:3002/files/dog.jpg' &&
           interceptedRequest.method() === 'GET'
         ) {
           expect(
             await page.$eval('[data-hook="async-button__get-submit-btn"]', el => el.disabled)
           ).toEqual(true);
-
-          interceptedRequest.respond({
-            status: 200,
-            headers: { 'Access-Control-Allow-Origin': '*' },
-            contentType: 'application/json; charset=utf-8',
-            body: '{"wrappedArg":"sometext"}'
-          });
-
-          return;
         }
 
         interceptedRequest.continue();
@@ -53,13 +39,11 @@ describe('AsyncButtonMockedJsonResponse', () => {
       await Promise.all([
         page.waitForRequest(
           request =>
-            request.url() === 'http://localhost:3002/wrapIntoObject/100/sometext' &&
-            request.method() === 'GET'
+            request.url() === 'http://localhost:3002/files/dog.jpg' && request.method() === 'GET'
         ),
         page.waitForResponse(
           response =>
-            response.url() === 'http://localhost:3002/wrapIntoObject/100/sometext' &&
-            response.status() === 200
+            response.url() === 'http://localhost:3002/files/dog.jpg' && response.status() === 200
         ),
 
         await page.click('[data-hook="async-button__get-submit-btn"]')
@@ -72,9 +56,6 @@ describe('AsyncButtonMockedJsonResponse', () => {
       expect(
         await page.$eval('[data-hook="async-button__get-submit-btn"]', el => el.disabled)
       ).toEqual(false);
-      expect(
-        await page.$eval('[data-hook="async-button__get-request-result"]', el => el.innerHTML)
-      ).toEqual('Get Request Result: sometext');
     },
     timeout
   );

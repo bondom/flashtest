@@ -55,8 +55,8 @@ class ActionsHandler {
     // so there we create copy of initial actions to avoid mutation of window.ACTIONS
     //
     // TODO: maybe we need to avoid mutation of object actions, it will be more clear.
-    // To implement this we need to replace 'const res: Action[] = [];' to 'const res: Readonly<Action>[] = [];' in
-    // this.batchInputActions and all other methods. And then get rid of all mutations.
+    // To implement this we need to replace 'const res: Action[] = [];' to 'const res: Readonly<Action>[] = [];'
+    // in this.batchInputActions and all other methods. And then get rid of all mutations.
     const copiedActions = JSON.parse(JSON.stringify(actions));
     return Promise.resolve()
       .then(() => this.batchInputActions(copiedActions))

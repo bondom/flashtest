@@ -58,6 +58,7 @@ export type RequestAction = {
     };
     contentType: string | null;
     body: string;
+    shouldBeMocked: boolean;
   };
   finished: boolean;
 };

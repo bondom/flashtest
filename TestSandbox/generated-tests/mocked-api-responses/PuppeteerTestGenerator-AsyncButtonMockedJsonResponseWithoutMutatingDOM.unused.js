@@ -32,7 +32,11 @@ describe('AsyncButtonMockedJsonResponseWithoutMutatingDOM', () => {
             contentType: 'application/json; charset=utf-8',
             body: '{"wrappedArg":"sometext"}'
           });
+
+          return;
         }
+
+        interceptedRequest.continue();
       };
       page.on('request', interceptRequestCallback1);
 
@@ -51,6 +55,8 @@ describe('AsyncButtonMockedJsonResponseWithoutMutatingDOM', () => {
 
         await page.click('[data-hook="async-button__get-submit-btn"]')
       ]);
+
+      // check mutations after response
       expect(
         await page.$eval('[data-hook="async-button__get-request-result"]', el => el.innerHTML)
       ).toEqual('Get Request Result: sometext');

@@ -395,14 +395,7 @@ class Collector {
               break;
             }
             case 'attributes': {
-              this.handleElement({
-                element: record.target as HTMLElement,
-                type: 'attributes',
-                attributeName: record.attributeName,
-                oldValue: record.oldValue,
-                // @ts-ignore
-                value: (record.target as HTMLElement).getAttribute(record.attributeName)
-              });
+              this.handleAttributeMutationRecord(record);
             }
           }
         });
@@ -543,6 +536,31 @@ class Collector {
     // But it should be skipped only if
     //  contentEditable Element doesn't have [data-hook] atttribute itself
     this.handleElement({ element: parentElement, type: 'characterData', htmlType: 'inner' });
+  }
+
+  private handleAttributeMutationRecord(record: MutationRecord) {
+    // @ts-ignore
+    const value = (record.target as HTMLElement).getAttribute(record.attributeName);
+    if (
+      record.attributeName === 'src' &&
+      (this.valueIsBase64ImageSrc(record.oldValue) || this.valueIsBase64ImageSrc(value))
+    ) {
+      devConsole.log(
+        'Skipping recording attribute Mutation for src attribute, because its value or its oldValue is base64'
+      );
+    } else {
+      this.handleElement({
+        element: record.target as HTMLElement,
+        type: 'attributes',
+        attributeName: record.attributeName,
+        oldValue: record.oldValue,
+        value
+      });
+    }
+  }
+
+  private valueIsBase64ImageSrc(value: string | null) {
+    return value && value.startsWith('data:image/jpeg;base64,');
   }
 
   private elementHasInteractionElementsAsChildren(element: HTMLElement) {
@@ -781,36 +799,51 @@ class Collector {
   }
 
   private async updateRequestAction(requestAction: RequestAction, response: Response) {
-    const clonedResponseForJson = response.clone();
-    const clonedResponseForText = response.clone();
-
     requestAction.finished = true;
     // browser encodes url also, so we update url with encoded one
     requestAction.url = response.url;
 
-    let body: string;
-    try {
-      // @ts-ignore
-      const jsonRes: JSON = await clonedResponseForJson.json();
-      body = JSON.stringify(jsonRes);
-    } catch (error) {
-      body = await clonedResponseForText.text();
+    const contentType = response.headers.get('content-type');
+
+    if (contentType && contentType.startsWith('image')) {
+      devConsole.log(
+        'Skipping reading body and headers of Response because contentType starts with image'
+      );
+      requestAction.response = {
+        status: response.status,
+        headers: {},
+        contentType,
+        body: '',
+        shouldBeMocked: false
+      };
+    } else {
+      const clonedResponseForJson = response.clone();
+      const clonedResponseForText = response.clone();
+
+      let body: string;
+      try {
+        const jsonRes: JSON = await clonedResponseForJson.json();
+        body = JSON.stringify(jsonRes);
+      } catch (error) {
+        body = await clonedResponseForText.text();
+      }
+
+      const headersObj: {
+        [key: string]: string;
+      } = {};
+
+      response.headers.forEach((value: string, key: string) => {
+        headersObj[key] = value;
+      });
+
+      requestAction.response = {
+        status: response.status,
+        headers: headersObj,
+        contentType,
+        body,
+        shouldBeMocked: true
+      };
     }
-
-    const headersObj: {
-      [key: string]: string;
-    } = {};
-
-    response.headers.forEach((value: string, key: string) => {
-      headersObj[key] = value;
-    });
-
-    requestAction.response = {
-      status: response.status,
-      headers: headersObj,
-      contentType: response.headers.get('content-type'),
-      body
-    };
   }
 }
 

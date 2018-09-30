@@ -552,7 +552,7 @@ class Collector {
   }
 
   /**
-   * Try to handle(i.e add to mutationsArray) nodes passed in NodeList,
+   * Try to handle(i.e add to actionsArray, see this.handleElement) nodes passed in NodeList,
    * returns number of successfully handled Nodes.
    *
    * Node won't successfully handled if all next conditions are true:
@@ -738,7 +738,7 @@ class Collector {
       const method: string = arguments[1] ? arguments[1].method || 'get' : 'get';
       const newId = ++lastRequestId;
 
-      // responseData property is required for RequestAction, it will be assigned in response
+      // response property is required for RequestAction, it will be assigned in response
       // so to avoid typescript error we use 'as RequestAction'
       const requestAction: RequestAction = {
         id: newId,
@@ -769,37 +769,7 @@ class Collector {
         // setTimeout(() => {
         self.requestStatus = 'ended';
         devConsole.log('Response has just arrived, set requestStatus to ended');
-
-        const clonedResponseForJson = response.clone();
-        const clonedResponseForText = response.clone();
-        let body: string;
-        try {
-          // @ts-ignore
-          const jsonRes: JSON = await clonedResponseForJson.json();
-          body = JSON.stringify(jsonRes);
-        } catch (error) {
-          body = await clonedResponseForText.text();
-        }
-
-        const headersObj: {
-          [key: string]: string;
-        } = {};
-
-        response.headers.forEach((value: string, key: string) => {
-          headersObj[key] = value;
-        });
-
-        requestAction.response = {
-          status: response.status,
-          headers: headersObj,
-          contentType: response.headers.get('content-type'),
-          body
-        };
-
-        requestAction.finished = true;
-        // browser encodes url also, so we update url with encoded one
-        requestAction.url = response.url;
-
+        await self.updateRequestAction(requestAction, response);
         // if all requests are finished switch indicator to green
         if (self.allRequestsAreFinished() && self.indicator) {
           self.indicator.style.backgroundColor = 'green';
@@ -807,6 +777,39 @@ class Collector {
         // }, 0);
         return response;
       });
+    };
+  }
+
+  private async updateRequestAction(requestAction: RequestAction, response: Response) {
+    const clonedResponseForJson = response.clone();
+    const clonedResponseForText = response.clone();
+
+    requestAction.finished = true;
+    // browser encodes url also, so we update url with encoded one
+    requestAction.url = response.url;
+
+    let body: string;
+    try {
+      // @ts-ignore
+      const jsonRes: JSON = await clonedResponseForJson.json();
+      body = JSON.stringify(jsonRes);
+    } catch (error) {
+      body = await clonedResponseForText.text();
+    }
+
+    const headersObj: {
+      [key: string]: string;
+    } = {};
+
+    response.headers.forEach((value: string, key: string) => {
+      headersObj[key] = value;
+    });
+
+    requestAction.response = {
+      status: response.status,
+      headers: headersObj,
+      contentType: response.headers.get('content-type'),
+      body
     };
   }
 }

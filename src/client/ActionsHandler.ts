@@ -48,34 +48,38 @@ class ActionsHandler {
   }
 
   async handle(actions: ReadonlyActionsArray): Promise<ReadonlyChunksArray> {
-    return (
-      Promise.resolve()
-        .then(() => this.batchInputActions(actions))
-        .then(actions => {
-          devConsole.log('batchInputActions: ', actions);
-          return this.batchFocusAndClickActions(actions);
-        })
-        .then(actions => {
-          devConsole.log('batchFocusAndClickActions: ', actions);
-          return this.filterLastActionIfNeeded(actions);
-        })
-        .then(actions => {
-          devConsole.log('filterLastActionIfNeeded: ', actions);
-          return this.batchActionsForSelect(actions);
-        })
-        // .then(actions => {
-        //   devConsole.log('batchActionsForSelect: ', actions);
-        //   return this.handleRequestActions(actions);
-        // })
-        .then(actions => {
-          devConsole.log('batchActionsForSelect: ', actions);
-          return this.splitActionsOnChunks(actions);
-        })
-        .then(chunks => {
-          devConsole.log('chunks: ', chunks);
-          return chunks;
-        })
-    );
+    // In methods called below we mutate already pushed Action objects,
+    // because it is easier than delete current element and add new copied element;
+    // Due to these mutations actions in window.ACTIONS are also mutated,
+    // but we use window.ACTIONS in browser tests to save collected actions in file-system(test-data folder)
+    // so there we create copy of initial actions to avoid mutation of window.ACTIONS
+    //
+    // TODO: maybe we need to avoid mutation of object actions, it will be more clear.
+    // To implement this we need to replace 'const res: Action[] = [];' to 'const res: Readonly<Action>[] = [];' in
+    // this.batchInputActions and all other methods. And then get rid of all mutations.
+    const copiedActions = JSON.parse(JSON.stringify(actions));
+    return Promise.resolve()
+      .then(() => this.batchInputActions(copiedActions))
+      .then(actions => {
+        devConsole.log('batchInputActions: ', actions);
+        return this.batchFocusAndClickActions(actions);
+      })
+      .then(actions => {
+        devConsole.log('batchFocusAndClickActions: ', actions);
+        return this.filterLastActionIfNeeded(actions);
+      })
+      .then(actions => {
+        devConsole.log('filterLastActionIfNeeded: ', actions);
+        return this.batchActionsForSelect(actions);
+      })
+      .then(actions => {
+        devConsole.log('batchActionsForSelect: ', actions);
+        return this.splitActionsOnChunks(actions);
+      })
+      .then(chunks => {
+        devConsole.log('chunks: ', chunks);
+        return chunks;
+      });
   }
 
   private batchInputActions(actions: ReadonlyActionsArray): ReadonlyActionsArray {
@@ -305,44 +309,6 @@ class ActionsHandler {
       return actions.slice(0, actions.length - 1);
     }
     return actions;
-  }
-
-  // @ts-ignore
-  private async handleRequestActions(actions: ReadonlyActionsArray): Promise<ReadonlyActionsArray> {
-    const resActions: Action[] = [];
-    await Promise.all(
-      actions.map(async action => {
-        if (isRequestAction(action)) {
-          // @ts-ignore
-          const oldResponse: Response = action.response;
-          const clonedResponse = (oldResponse as Response).clone();
-          let body: string;
-          try {
-            // @ts-ignore
-            const jsonRes: JSON = await oldResponse.json();
-            body = JSON.stringify(jsonRes);
-          } catch (error) {
-            body = await clonedResponse.text();
-          }
-
-          const newAction = Object.assign({}, action, {
-            response: {
-              status: oldResponse.status,
-              headers: oldResponse.headers,
-              contentType: oldResponse.headers.get('content-type'),
-              body
-            }
-          });
-          resActions.push(newAction);
-          return newAction;
-        } else {
-          resActions.push(action);
-          return action;
-        }
-      })
-    );
-
-    return resActions;
   }
 
   private splitActionsOnChunks(actions: ReadonlyActionsArray): ReadonlyChunksArray {

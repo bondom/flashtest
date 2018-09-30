@@ -8,7 +8,7 @@ import { Action } from '../../src/client/types';
 const readFile = util.promisify(fs.readFile);
 
 export async function readTestContent(fileName: string) {
-  return await readFile(path.resolve(__dirname, '../', `components/${fileName}`), {
+  return await readFile(path.resolve(__dirname, '../', `generated-tests/${fileName}`), {
     encoding: 'utf-8'
   });
 }

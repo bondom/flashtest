@@ -43,7 +43,8 @@ import {
   // mocked api responses
   MockedJsonResponse,
   MockedJsonResponseWithoutMutatingDOM,
-  MockedImageResponse
+  MockedImageResponse,
+  MockedAllResponsesSimultaneously
 } from './components';
 
 import * as styles from './styles.scss';
@@ -106,6 +107,7 @@ const App = () => (
               MockedJsonResponseWithoutMutatingDOM
             </Link>
             <Link to="/mockedImageResponse">MockedImageResponse</Link>
+            <Link to="/mockedAllResponsesSimultaneously">MockedAllResponsesSimultaneously</Link>
           </div>
         </nav>
         <Switch>
@@ -159,6 +161,11 @@ const App = () => (
             component={MockedJsonResponseWithoutMutatingDOM}
           />
           <Route exact path="/mockedImageResponse" component={MockedImageResponse} />
+          <Route
+            exact
+            path="/mockedAllResponsesSimultaneously"
+            component={MockedAllResponsesSimultaneously}
+          />
           <Redirect to="/login" />
         </Switch>
       </div>

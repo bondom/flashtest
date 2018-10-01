@@ -47,3 +47,4 @@ export * from './RemovedElement';
 export * from './MockedJsonResponse';
 export * from './MockedJsonResponseWithoutMutatingDOM';
 export * from './MockedImageResponse';
+export * from './MockedAllResponsesSimultaneously';

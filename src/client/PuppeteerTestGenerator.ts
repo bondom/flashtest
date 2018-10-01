@@ -186,7 +186,8 @@ class PuppeteerTestGenerator {
       () => {
         let page;
         beforeAll(async () => {
-          page = await global.browser.newPage();
+          const context = await browser.createIncognitoBrowserContext();
+          page = await context.newPage();
           ${gotoCode}
         }, timeout);
 

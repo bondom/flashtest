@@ -3,7 +3,8 @@ const timeout = 30000;
 describe('AsyncButton', () => {
   let page;
   beforeAll(async () => {
-    page = await global.browser.newPage();
+    const context = await browser.createIncognitoBrowserContext();
+    page = await context.newPage();
     await page.goto('http://localhost:8001/asyncButton');
   }, timeout);
 

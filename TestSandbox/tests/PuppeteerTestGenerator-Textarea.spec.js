@@ -5,7 +5,8 @@ const timeout = 30000;
 describe('Textarea', () => {
   let page;
   beforeAll(async () => {
-    page = await global.browser.newPage();
+    const context = await browser.createIncognitoBrowserContext();
+    page = await context.newPage();
     await page.goto('http://localhost:8001/textarea');
   }, timeout);
 

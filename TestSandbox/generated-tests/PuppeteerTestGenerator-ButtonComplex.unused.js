@@ -3,7 +3,8 @@ const timeout = 30000;
 describe('ButtonComplex', () => {
   let page;
   beforeAll(async () => {
-    page = await global.browser.newPage();
+    const context = await browser.createIncognitoBrowserContext();
+    page = await context.newPage();
     await page.goto('http://localhost:8001/buttonComplex');
   }, timeout);
 

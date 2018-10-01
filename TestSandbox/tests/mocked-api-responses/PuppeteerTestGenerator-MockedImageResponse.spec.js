@@ -2,16 +2,16 @@ import { updateTestData } from '../../testUtils';
 
 const timeout = 30000;
 
-describe('AsyncButtonMockedImageResponse', () => {
+describe('MockedImageResponse', () => {
   let page;
   beforeAll(async () => {
     page = await global.browser.newPage();
-    await page.goto('http://localhost:8001/asyncButtonMockedImageResponse');
+    await page.goto('http://localhost:8001/mockedImageResponse');
   }, timeout);
 
   afterAll(async () => {
     if (process.env.JEST_UPDATE_DATA_ENV) {
-      await updateTestData(page, 'AsyncButtonMockedImageResponse');
+      await updateTestData(page, 'MockedImageResponse');
     }
     await page.close();
   });

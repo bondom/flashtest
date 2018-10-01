@@ -560,7 +560,7 @@ class Collector {
   }
 
   private valueIsBase64ImageSrc(value: string | null) {
-    return value && value.startsWith('data:image/jpeg;base64,');
+    return value && value.startsWith('data:image');
   }
 
   private elementHasInteractionElementsAsChildren(element: HTMLElement) {

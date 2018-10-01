@@ -41,9 +41,9 @@ import {
   RemovedTextNode,
   RemovedElement,
   // mocked api responses
-  AsyncButtonMockedJsonResponse,
-  AsyncButtonMockedJsonResponseWithoutMutatingDOM,
-  AsyncButtonMockedImageResponse
+  MockedJsonResponse,
+  MockedJsonResponseWithoutMutatingDOM,
+  MockedImageResponse
 } from './components';
 
 import * as styles from './styles.scss';
@@ -101,11 +101,11 @@ const App = () => (
             <Link to="/todoList">TodoList</Link>
           </div>
           <div>
-            <Link to="/asyncButtonMockedJsonResponse">AsyncButtonMockedJsonResponse</Link>
-            <Link to="/asyncButtonMockedJsonResponseWithoutMutatingDOM">
-              AsyncButtonMockedJsonResponseWithoutMutatingDOM
+            <Link to="/mockedJsonResponse">MockedJsonResponse</Link>
+            <Link to="/mockedJsonResponseWithoutMutatingDOM">
+              MockedJsonResponseWithoutMutatingDOM
             </Link>
-            <Link to="/asyncButtonMockedImageResponse">AsyncButtonMockedImageResponse</Link>
+            <Link to="/mockedImageResponse">MockedImageResponse</Link>
           </div>
         </nav>
         <Switch>
@@ -152,21 +152,13 @@ const App = () => (
           <Route exact path="/buttonComplex" component={ButtonComplex} />
           <Route exact path="/registrationForm" component={RegistrationForm} />
           <Route exact path="/todoList" component={TodoList} />
+          <Route exact path="/mockedJsonResponse" component={MockedJsonResponse} />
           <Route
             exact
-            path="/asyncButtonMockedJsonResponse"
-            component={AsyncButtonMockedJsonResponse}
+            path="/mockedJsonResponseWithoutMutatingDOM"
+            component={MockedJsonResponseWithoutMutatingDOM}
           />
-          <Route
-            exact
-            path="/asyncButtonMockedJsonResponseWithoutMutatingDOM"
-            component={AsyncButtonMockedJsonResponseWithoutMutatingDOM}
-          />
-          <Route
-            exact
-            path="/asyncButtonMockedImageResponse"
-            component={AsyncButtonMockedImageResponse}
-          />
+          <Route exact path="/mockedImageResponse" component={MockedImageResponse} />
           <Redirect to="/login" />
         </Switch>
       </div>

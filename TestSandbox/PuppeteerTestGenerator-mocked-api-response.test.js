@@ -10,17 +10,17 @@ import {
 import {
   actions as asyncButtonJsonResponseActions,
   initMarkups as asyncButtonJsonResponseInitMarkups
-} from './test-data/AsyncButtonMockedJsonResponse-data';
+} from './test-data/MockedJsonResponse-data';
 
 import {
   actions as asyncButtonWithoutMutatingDOMActions,
   initMarkups as asyncButtonWithoutMutatingDOMInitMarkups
-} from './test-data/AsyncButtonMockedJsonResponseWithoutMutatingDOM-data';
+} from './test-data/MockedJsonResponseWithoutMutatingDOM-data';
 
 import {
   actions as asyncButtonMockedImageResponseActions,
   initMarkups as asyncButtonMockedImageResponseInitMarkups
-} from './test-data/AsyncButtonMockedImageResponse-data';
+} from './test-data/MockedImageResponse-data';
 
 describe('PuppeteerTestGenerator.transformDataAndGenerateCode: mocked api responses', () => {
   test(`async button: request is sent when button is clicked
@@ -38,7 +38,7 @@ describe('PuppeteerTestGenerator.transformDataAndGenerateCode: mocked api respon
 
     const code = await testGenerator.transformDataAndGenerateCode();
     const asyncButtonExpectedCode = await readTestContent(
-      'mocked-api-responses/PuppeteerTestGenerator-AsyncButtonMocked.unused.js'
+      'mocked-api-responses/PuppeteerTestGenerator-MockedTextResponse.unused.js'
     );
     expect(formatCode(code)).toEqual(formatCode(asyncButtonExpectedCode));
   });
@@ -48,17 +48,17 @@ describe('PuppeteerTestGenerator.transformDataAndGenerateCode: mocked api respon
         result of request changes DOM, 
         response is mocked with json`, async () => {
     const testGenerator = new PuppeteerTestGenerator({
-      testName: 'AsyncButtonMockedJsonResponse',
+      testName: 'MockedJsonResponse',
       addComments: true,
       mockApiResponses: true
     });
-    testGenerator.collector.url = 'http://localhost:8001/asyncButtonMockedJsonResponse';
+    testGenerator.collector.url = 'http://localhost:8001/mockedJsonResponse';
     testGenerator.collector.initialMarkup = asyncButtonJsonResponseInitMarkups;
     testGenerator.collector.actions = asyncButtonJsonResponseActions;
 
     const code = await testGenerator.transformDataAndGenerateCode();
     const asyncButtonJsonResponseExpectedCode = await readTestContent(
-      'mocked-api-responses/PuppeteerTestGenerator-AsyncButtonMockedJsonResponse.unused.js'
+      'mocked-api-responses/PuppeteerTestGenerator-MockedJsonResponse.unused.js'
     );
     expect(formatCode(code)).toEqual(formatCode(asyncButtonJsonResponseExpectedCode));
   });
@@ -68,18 +68,17 @@ describe('PuppeteerTestGenerator.transformDataAndGenerateCode: mocked api respon
         result of request changes DOM, 
         response is mocked with json`, async () => {
     const testGenerator = new PuppeteerTestGenerator({
-      testName: 'AsyncButtonMockedJsonResponseWithoutMutatingDOM',
+      testName: 'MockedJsonResponseWithoutMutatingDOM',
       addComments: true,
       mockApiResponses: true
     });
-    testGenerator.collector.url =
-      'http://localhost:8001/asyncButtonMockedJsonResponseWithoutMutatingDOM';
+    testGenerator.collector.url = 'http://localhost:8001/mockedJsonResponseWithoutMutatingDOM';
     testGenerator.collector.initialMarkup = asyncButtonWithoutMutatingDOMInitMarkups;
     testGenerator.collector.actions = asyncButtonWithoutMutatingDOMActions;
 
     const code = await testGenerator.transformDataAndGenerateCode();
     const asyncButtonWithoutMutatingDOMExpectedCode = await readTestContent(
-      'mocked-api-responses/PuppeteerTestGenerator-AsyncButtonMockedJsonResponseWithoutMutatingDOM.unused.js'
+      'mocked-api-responses/PuppeteerTestGenerator-MockedJsonResponseWithoutMutatingDOM.unused.js'
     );
     expect(formatCode(code)).toEqual(formatCode(asyncButtonWithoutMutatingDOMExpectedCode));
   });
@@ -88,17 +87,17 @@ describe('PuppeteerTestGenerator.transformDataAndGenerateCode: mocked api respon
         result of request changes src attribute of img, this change isn't checked in tests,
         because src value is base64(too long)`, async () => {
     const testGenerator = new PuppeteerTestGenerator({
-      testName: 'AsyncButtonMockedImageResponse',
+      testName: 'MockedImageResponse',
       addComments: true,
       mockApiResponses: true
     });
-    testGenerator.collector.url = 'http://localhost:8001/asyncButtonMockedImageResponse';
+    testGenerator.collector.url = 'http://localhost:8001/mockedImageResponse';
     testGenerator.collector.initialMarkup = asyncButtonMockedImageResponseInitMarkups;
     testGenerator.collector.actions = asyncButtonMockedImageResponseActions;
 
     const code = await testGenerator.transformDataAndGenerateCode();
     const asyncButtonMockedImageResponseExpectedCode = await readTestContent(
-      'mocked-api-responses/PuppeteerTestGenerator-AsyncButtonMockedImageResponse.unused.js'
+      'mocked-api-responses/PuppeteerTestGenerator-MockedImageResponse.unused.js'
     );
     expect(formatCode(code)).toEqual(formatCode(asyncButtonMockedImageResponseExpectedCode));
   });

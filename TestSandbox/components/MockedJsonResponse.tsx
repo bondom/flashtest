@@ -6,7 +6,7 @@ type State = {
   getReqStatus: ReqStatus;
   getReqResult: string;
 };
-class AsyncButtonMockedJsonResponse extends React.Component<{}, State> {
+class MockedJsonResponse extends React.Component<{}, State> {
   state = {
     getReqStatus: 'none' as ReqStatus,
     getReqResult: ''
@@ -47,4 +47,4 @@ class AsyncButtonMockedJsonResponse extends React.Component<{}, State> {
   }
 }
 
-export { AsyncButtonMockedJsonResponse };
+export { MockedJsonResponse };

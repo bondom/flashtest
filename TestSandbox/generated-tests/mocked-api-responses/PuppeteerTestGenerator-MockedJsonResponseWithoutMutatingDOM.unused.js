@@ -1,10 +1,10 @@
 const timeout = 30000;
 
-describe('AsyncButtonMockedJsonResponse', () => {
+describe('MockedJsonResponseWithoutMutatingDOM', () => {
   let page;
   beforeAll(async () => {
     page = await global.browser.newPage();
-    await page.goto('http://localhost:8001/asyncButtonMockedJsonResponse');
+    await page.goto('http://localhost:8001/mockedJsonResponseWithoutMutatingDOM');
   }, timeout);
 
   afterAll(async () => {
@@ -19,11 +19,6 @@ describe('AsyncButtonMockedJsonResponse', () => {
         await page.$eval('[data-hook="async-button__get-request-result"]', el => el.outerHTML)
       ).toEqual('<div data-hook="async-button__get-request-result">Get Request Result: </div>');
 
-      // check attributes before 'click' on '[data-hook="async-button__get-submit-btn"]' element
-      expect(
-        await page.$eval('[data-hook="async-button__get-submit-btn"]', el => el.disabled)
-      ).toEqual(false);
-
       // check DOM while requests are processing and mock api responses
       await page.setRequestInterception(true);
       const interceptRequestCallback1 = async interceptedRequest => {
@@ -31,10 +26,6 @@ describe('AsyncButtonMockedJsonResponse', () => {
           interceptedRequest.url() === 'http://localhost:3002/wrapIntoObject/100/sometext' &&
           interceptedRequest.method() === 'GET'
         ) {
-          expect(
-            await page.$eval('[data-hook="async-button__get-submit-btn"]', el => el.disabled)
-          ).toEqual(true);
-
           interceptedRequest.respond({
             status: 200,
             headers: { 'Access-Control-Allow-Origin': '*' },
@@ -65,13 +56,7 @@ describe('AsyncButtonMockedJsonResponse', () => {
         await page.click('[data-hook="async-button__get-submit-btn"]')
       ]);
 
-      page.removeListener('request', interceptRequestCallback1);
-      await page.setRequestInterception(false);
-
       // check mutations after response
-      expect(
-        await page.$eval('[data-hook="async-button__get-submit-btn"]', el => el.disabled)
-      ).toEqual(false);
       expect(
         await page.$eval('[data-hook="async-button__get-request-result"]', el => el.innerHTML)
       ).toEqual('Get Request Result: sometext');

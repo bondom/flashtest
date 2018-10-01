@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { TEST_API_URL } from '../constants';
 
-// This file has only difference from ./AsyncButtonMockedJsonResponse.tsx:
+// This file has only difference from ./MockedJsonResponse.tsx:
 // when button is clicked, only request is sent, but DOM isn't mutated(button isn't disabled)
 type State = {
   getReqResult: string;
 };
-class AsyncButtonMockedJsonResponseWithoutMutatingDOM extends React.Component<{}, State> {
+class MockedJsonResponseWithoutMutatingDOM extends React.Component<{}, State> {
   state = {
     getReqResult: ''
   };
@@ -40,4 +40,4 @@ class AsyncButtonMockedJsonResponseWithoutMutatingDOM extends React.Component<{}
   }
 }
 
-export { AsyncButtonMockedJsonResponseWithoutMutatingDOM };
+export { MockedJsonResponseWithoutMutatingDOM };

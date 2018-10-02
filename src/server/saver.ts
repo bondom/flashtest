@@ -1,6 +1,6 @@
-import * as fs from 'node-fs-extra';
 import devConsole from '../devConsole';
-import * as format from 'prettier-eslint';
+const fs = require('node-fs-extra');
+const format = require('prettier-eslint');
 
 import * as appRootPath from 'app-root-path';
 

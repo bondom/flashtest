@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 /* eslint-disable no-console*/
-var Console = /** @class */ (function () {
-    function Console() {
+var devConsole = /** @class */ (function () {
+    function devConsole() {
     }
-    Console.log = function () {
+    devConsole.log = function () {
         var args = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             args[_i] = arguments[_i];
@@ -12,7 +12,7 @@ var Console = /** @class */ (function () {
         if (!process.env.OFF_CONSOLE)
             console.log.apply(null, args);
     };
-    Console.warn = function () {
+    devConsole.warn = function () {
         var args = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             args[_i] = arguments[_i];
@@ -20,7 +20,7 @@ var Console = /** @class */ (function () {
         if (!process.env.OFF_CONSOLE)
             console.warn.apply(null, args);
     };
-    Console.error = function () {
+    devConsole.error = function () {
         var args = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             args[_i] = arguments[_i];
@@ -28,7 +28,7 @@ var Console = /** @class */ (function () {
         if (!process.env.OFF_CONSOLE)
             console.error.apply(null, args);
     };
-    Console.group = function () {
+    devConsole.group = function () {
         var args = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             args[_i] = arguments[_i];
@@ -36,7 +36,7 @@ var Console = /** @class */ (function () {
         if (!process.env.OFF_CONSOLE)
             console.group.apply(null, args);
     };
-    Console.groupEnd = function () {
+    devConsole.groupEnd = function () {
         var args = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             args[_i] = arguments[_i];
@@ -44,6 +44,6 @@ var Console = /** @class */ (function () {
         if (!process.env.OFF_CONSOLE)
             console.groupEnd.apply(null, args);
     };
-    return Console;
+    return devConsole;
 }());
-exports.default = Console;
+exports.default = devConsole;

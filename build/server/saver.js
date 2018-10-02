@@ -35,9 +35,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var fs = require("node-fs-extra");
-var Console_1 = require("../Console");
-var format = require("prettier-eslint");
+var devConsole_1 = require("../devConsole");
+var fs = require('node-fs-extra');
+var format = require('prettier-eslint');
 var appRootPath = require("app-root-path");
 function save(fileName, code, testsFolder) {
     if (testsFolder === void 0) { testsFolder = '/'; }
@@ -45,7 +45,7 @@ function save(fileName, code, testsFolder) {
         var filePath;
         return __generator(this, function (_a) {
             filePath = appRootPath + '/' + testsFolder + '/' + fileName + '.spec.generated.js';
-            Console_1.default.log('File path: \n', filePath);
+            devConsole_1.default.log('File path: \n', filePath);
             try {
                 fs.outputFileSync(filePath, format({ text: code }));
                 return [2 /*return*/, Promise.resolve()];

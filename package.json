@@ -35,7 +35,7 @@
     "fix": "eslint --ext .ts,.tsx --fix",
     "build-client": "cross-env OFF_CONSOLE=true webpack --mode=development --config src/webpack.config.js",
     "build-server": "cross-env OFF_CONSOLE=true tsc -p tsconfig.prod.json",
-    "build": "npm run build-client && npm run build-server",
+    "build": "rimraf build && npm run build-client && npm run build-server",
     "prepublishOnly": "npm run build"
   },
   "bin": {

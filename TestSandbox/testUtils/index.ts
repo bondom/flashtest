@@ -1,9 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as puppeteer from 'puppeteer';
-import * as format from 'prettier-eslint';
 import * as util from 'util';
 import { Action } from '../../src/client/types';
+const format = require('prettier-eslint');
 
 const readFile = util.promisify(fs.readFile);
 

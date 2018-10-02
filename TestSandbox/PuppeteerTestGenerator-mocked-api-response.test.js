@@ -27,6 +27,16 @@ import {
   initMarkups as mockedAllResponsesSimultaneouslyInitMarkups
 } from './test-data/MockedAllResponsesSimultaneously-data';
 
+import {
+  actions as mockedResponseOnMountActions,
+  initMarkups as mockedResponseOnMountInitMarkups
+} from './test-data/MockedResponseOnMount-data';
+
+import {
+  actions as mockedTodoListActions,
+  initMarkups as mockedTodoListInitMarkups
+} from './test-data/MockedTodoList-data';
+
 describe('PuppeteerTestGenerator.transformDataAndGenerateCode: mocked api responses', () => {
   test(`request is sent when button is clicked
         (button is disabled while request is running), 
@@ -123,5 +133,39 @@ describe('PuppeteerTestGenerator.transformDataAndGenerateCode: mocked api respon
       'mocked-api-responses/PuppeteerTestGenerator-MockedAllResponsesSimultaneously.unused.js'
     );
     expect(formatCode(code)).toEqual(formatCode(mockedAllResponsesSimultaneouslyExpectedCode));
+  });
+
+  test(`Mocked response on mount`, async () => {
+    const testGenerator = new PuppeteerTestGenerator({
+      testName: 'MockedResponseOnMount',
+      addComments: true,
+      mockApiResponses: true
+    });
+    testGenerator.collector.url = 'http://localhost:8001/asyncRequestOnMount';
+    testGenerator.collector.initialMarkup = mockedResponseOnMountInitMarkups;
+    testGenerator.collector.actions = mockedResponseOnMountActions;
+
+    const code = await testGenerator.transformDataAndGenerateCode();
+    const mockedResponseOnMount = await readTestContent(
+      'mocked-api-responses/PuppeteerTestGenerator-MockedResponseOnMount.unused.js'
+    );
+    expect(formatCode(code)).toEqual(formatCode(mockedResponseOnMount));
+  });
+
+  test(`Mocked todo list page`, async () => {
+    const testGenerator = new PuppeteerTestGenerator({
+      testName: 'MockedTodoList',
+      addComments: true,
+      mockApiResponses: true
+    });
+    testGenerator.collector.url = 'http://localhost:8001/todoList';
+    testGenerator.collector.initialMarkup = mockedTodoListInitMarkups;
+    testGenerator.collector.actions = mockedTodoListActions;
+
+    const code = await testGenerator.transformDataAndGenerateCode();
+    const mockedTodoListExpectedCode = await readTestContent(
+      'mocked-api-responses/PuppeteerTestGenerator-MockedTodoList.unused.js'
+    );
+    expect(formatCode(code)).toEqual(formatCode(mockedTodoListExpectedCode));
   });
 });

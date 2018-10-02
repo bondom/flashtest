@@ -57,6 +57,9 @@ describe('MockedJsonResponseWithoutMutatingDOM', () => {
         await page.click('[data-hook="async-button__get-submit-btn"]')
       ]);
 
+      page.removeListener('request', interceptRequestCallback1);
+      await page.setRequestInterception(false);
+
       // check mutations after response
       expect(
         await page.$eval('[data-hook="async-button__get-request-result"]', el => el.innerHTML)

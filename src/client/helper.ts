@@ -74,11 +74,16 @@ function bothTypesAreAttributeOrNot(type1: MutationType, type2: MutationType): b
   );
 }
 
+const outputTitleInConsole = (text: string, consoleFunc: Function) => {
+  consoleFunc(`%c ${text}`, 'font-weight: bold; font-size: 20px');
+};
+
 export {
   isUserInteractionAction,
   isDomMutationAction,
   isRequestAction,
   bothTypesAreAttributeOrNot,
   getMutationsFromActionChunks,
-  getRequestsFromActionChunks
+  getRequestsFromActionChunks,
+  outputTitleInConsole
 };

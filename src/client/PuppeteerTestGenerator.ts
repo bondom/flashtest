@@ -15,10 +15,15 @@ import {
   ReadonlyActionsArray,
   ReadonlyChunksArray
 } from './types';
+import * as localStorageApi from 'local-storage';
 
 import { SERVER_URI, SERVER_DEFAULT_PORT } from './Constants';
 
 import devConsole from '../devConsole';
+
+const outputTitleInConsole = (text: string, consoleFunc: Function) => {
+  consoleFunc(`%c ${text}`, 'font-weight: bold; font-size: 20px');
+};
 
 class PuppeteerTestGenerator {
   collector: Collector;
@@ -31,6 +36,7 @@ class PuppeteerTestGenerator {
   testsFolder?: string;
   serverUrl: string;
   mockApiResponses: boolean;
+  disableCache: boolean;
 
   constructor({
     addComments = true,
@@ -63,6 +69,8 @@ class PuppeteerTestGenerator {
       errorsArray,
       serverUrl: this.serverUrl
     });
+    this.errorsArray = errorsArray;
+    this.disableCache = localStorageApi('disableCache') || false;
   }
 
   start() {
@@ -75,12 +83,22 @@ class PuppeteerTestGenerator {
         return this.saveFile(generatedCode);
       } else {
         /* eslint-disable no-console */
-        console.log('saveToFs is false, so code is output to console: ');
+        outputTitleInConsole('saveToFs is false, so code is output to console:', console.log);
         console.log(generatedCode);
         return;
         /* eslint-enable no-console */
       }
     });
+  }
+
+  setDisableCache(disableCache: boolean) {
+    if (this.collector.actions.some(isRequestAction)) {
+      this.errorsArray.push(`
+        Warning: You changed disable cache value when at least one request was already sent.
+      `);
+    }
+    localStorageApi('disableCache', disableCache);
+    this.disableCache = disableCache;
   }
 
   private saveFile(generatedCode: string): Promise<void | Error> {
@@ -106,7 +124,10 @@ class PuppeteerTestGenerator {
       })
       .catch((error: Error) => {
         /* eslint-disable no-console */
-        console.warn('Because of error occured when saving file, code is output to console: ');
+        outputTitleInConsole(
+          'Because of error occured when saving file, code is output to console: ',
+          console.warn
+        );
         console.log(generatedCode);
         /* eslint-enable no-console */
         return Promise.reject(error);
@@ -125,9 +146,7 @@ class PuppeteerTestGenerator {
     const actionChunks: ReadonlyChunksArray = await this.actionsHandler.handle(actions);
     const preparedActionChunks = prepareToCodeGenerating(actionChunks);
 
-    const generatedCode = this.generateCode(preparedActionChunks, initialMarkup, url);
-    devConsole.log('Generated code: ', generatedCode);
-    return generatedCode;
+    return this.generateCode(preparedActionChunks, initialMarkup, url);
   }
 
   generateCode(

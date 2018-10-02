@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import PuppeteerTestGenerator from '../client/PuppeteerTestGenerator';
 import ToggleCollapseIcon from './ToggleCollapseIcon';
+import DisableCache from './DisableCache';
 
 const Statuses = {
   None: 'none',
@@ -22,24 +23,25 @@ class CollectorComponent extends React.Component {
       this.setState({ error: element, collapsed: false });
     };
 
-    this.state = {
-      generator: new PuppeteerTestGenerator({
-        testsFolder: props.testsFolder,
-        saveToFs: props.saveToFs,
-        addComments: props.addComments,
-        indicatorQuerySelector: '[data-flashtest-hook="___FLASHTEST-INDICATOR"]',
-        serverPort: props.serverPort,
-        errorsArray,
-        mockApiResponses: props.mockApiResponses
-      }),
+    this.generator = new PuppeteerTestGenerator({
+      testsFolder: props.testsFolder,
+      saveToFs: props.saveToFs,
+      addComments: props.addComments,
+      indicatorQuerySelector: '[data-flashtest-hook="___FLASHTEST-INDICATOR"]',
+      serverPort: props.serverPort,
+      errorsArray,
+      mockApiResponses: props.mockApiResponses
+    });
 
+    this.state = {
       error: undefined,
       success: false,
       moveable: false,
       collapsed: false,
-      status: Statuses.None
+      status: Statuses.None,
+      disableCache: this.generator.disableCache
     };
-    this.state.generator.start();
+    this.generator.start();
   }
 
   onMouseDown = e => {
@@ -83,7 +85,7 @@ class CollectorComponent extends React.Component {
 
   onFinishBtnClick = () => {
     this.setState({ status: Statuses.Generating });
-    this.state.generator
+    this.generator
       .finish()
       .then(() => {
         this.setState({ status: Statuses.Success });
@@ -99,6 +101,12 @@ class CollectorComponent extends React.Component {
           status: Statuses.None
         });
       });
+  };
+
+  onDisableCacheChange = e => {
+    const value = e.target.checked;
+    this.generator.setDisableCache(value);
+    this.setState({ disableCache: value });
   };
 
   handleError = errorMsg => {
@@ -169,7 +177,13 @@ class CollectorComponent extends React.Component {
               {status === Statuses.Generating && <div>Generating...</div>}
               {status === Statuses.Success && <div>Test successfully saved</div>}
               {status === Statuses.None && (
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    flexDirection: 'column'
+                  }}
+                >
                   <button
                     onClick={this.onFinishBtnClick}
                     data-flashtest-hook="___FLASHTEST-FINISH-BUTTON"
@@ -185,6 +199,11 @@ class CollectorComponent extends React.Component {
                   >
                     Finish Test
                   </button>
+                  {/* Should be commented until https://github.com/GoogleChrome/puppeteer/issues/3335 will be resolved*/}
+                  {/* <DisableCache
+                    onDisableCacheChange={this.onDisableCacheChange}
+                    disableCache={this.state.disableCache}
+                  /> */}
                 </div>
               )}
               {error && (

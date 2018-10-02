@@ -43,7 +43,7 @@ export type UserInteractionAction = {
   name?: string;
   tagName?: string;
   inputType?: string | null;
-  inputData?: string | null;
+  inputData?: string | null; // last entered symbol
   currentTargetDataHook?: string | null;
 };
 

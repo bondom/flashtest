@@ -120,7 +120,8 @@ path to folder where generated tests will be saved, is relative to app root fold
 port where backend part is running.<br/>
 <b>Note:</b> `serverPort` should equal to `-p` arg passed to `flashtest-server`!
 #### mockApiResponses _(default: false)_
-if set to `true`, all responses will mocked with puppeteer's [request.respond](https://github.com/GoogleChrome/puppeteer/blob/v1.8.0/docs/api.md#requestrespondresponse)
+if set to `true`, responses will be mocked with puppeteer's [request.respond](https://github.com/GoogleChrome/puppeteer/blob/v1.8.0/docs/api.md#requestrespondresponse).<br/>
+If `contentType` header of response starts with `image`, such response will not be mocked.
 
 ### Backend part API
 You can run backend part with `npm run flashtest-server` - it is needed only if you set `saveToFs` to `true`.

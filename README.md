@@ -119,6 +119,8 @@ path to folder where generated tests will be saved, is relative to app root fold
 #### serverPort _(default: 3000)_ 
 port where backend part is running.<br/>
 <b>Note:</b> `serverPort` should equal to `-p` arg passed to `flashtest-server`!
+#### mockApiResponses _(default: false)_
+if set to `true`, all responses will mocked with puppeteer's [request.respond](https://github.com/GoogleChrome/puppeteer/blob/v1.8.0/docs/api.md#requestrespondresponse)
 
 ### Backend part API
 You can run backend part with `npm run flashtest-server` - it is needed only if you set `saveToFs` to `true`.
@@ -136,12 +138,11 @@ Library tracks requests which are sent with only [fetch](https://developer.mozil
 ### Current support 
 1. `HTMLElement` was only checked, `SVGElement` and others weren't checked yet. 
 2.  Special buttons such as `Esc`, `Backspace` and similar ones aren't supported yet.
-3. There is no possibility to generate test with mocked requests. It is really huge drawback because if backend data change from test run to test run, your test will fail. This feature is one of primary features which are planned to be implemented.
-4. Body of request isn't checked in tests, only url and method are checked.
-5. Url change isn't supported. If you want to create test for particular url, go to this url, reload page and start
+3. Body of request isn't checked in tests, only url and method are checked.
+4. Url change isn't supported. If you want to create test for particular url, go to this url, reload page and start
 `interacting process` from scratch.
-6. HTMLElement with `contentEditable` attribute isn't handled properly yet, so generated code will be broken if you use this element and add `data-hook` attribute to it.
-7. Change to following elements aren't checked in generated code: `input[type="checkbox"]`, `input[type="radio"]` 
+5. HTMLElement with `contentEditable` attribute isn't handled properly yet, so generated code will be broken if you use this element and add `data-hook` attribute to it.
+6. Change to following elements aren't checked in generated code: `input[type="checkbox"]`, `input[type="radio"]` 
 and `select` because in these cases DOM isn't changed.
 
 

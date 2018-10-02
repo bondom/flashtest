@@ -1,6 +1,6 @@
 {
   "name": "flashtest",
-  "version": "0.0.5",
+  "version": "0.0.6-beta",
   "main": "build/index.js",
   "license": "MIT",
   "author": "Yurii Fediv (alpachino48@gmail.com)",

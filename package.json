@@ -8,7 +8,9 @@
   "keywords": [
     "jest",
     "puppeteer",
-    "test"
+    "test",
+    "generator",
+    "generating"
   ],
   "repository": {
     "type": "git",

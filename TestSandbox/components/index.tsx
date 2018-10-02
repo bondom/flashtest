@@ -35,10 +35,16 @@ export * from './LoginForm';
 export * from './RegistrationForm';
 export * from './TodoList';
 
-// Merging
+// Actions Merging
 export * from './MergedClickFocus';
 export * from './MergedClickBlur';
 
 export * from './DynamicallyAddedButton';
 export * from './RemovedTextNode';
 export * from './RemovedElement';
+
+// Mocked API Response
+export * from './MockedJsonResponse';
+export * from './MockedJsonResponseWithoutMutatingDOM';
+export * from './MockedImageResponse';
+export * from './MockedAllResponsesSimultaneously';

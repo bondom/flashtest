@@ -1,5 +1,12 @@
-import { Action, EventName, UserInteractionAction } from './types';
-import Console from '../Console';
+import {
+  Action,
+  EventName,
+  UserInteractionAction,
+  ReadonlyActionsArray,
+  ReadonlyChunksArray
+} from './types';
+
+import devConsole from '../devConsole';
 import {
   isUserInteractionAction,
   isRequestAction,
@@ -7,22 +14,21 @@ import {
   isDomMutationAction
 } from './helper';
 
-/**
- * This handler handle actions, prepare them for test generating.
- *
- * TODO: It is very badly implemented, it should be refactored when most cases will be known
- * and all events will be handled.
- * These cases will be known after feedback from community or using this library on very big project
- *
- * TODO: more likely returning to chunks with EndRequestAction should be done.
- * Because it is hard to handle some cases and code is messed. For example:
- * - first input triggered adding of DOM node,
- * - second input triggered removing of DOM node.
- * In this case we don't need to merge these two inputs
- * To implement this handling for one actions array we need to create some workarounds and hacks.
- * Handling isn't clear.
- */
+// This class contains one public method 'handle',
+// its main goal: handle actions(batch similar ones, get response data from RequestionAction and so on),
+// and convert handled actions to chunks for easy code generating.
 
+// TODO: It is very badly implemented, it should be refactored when most cases will be known
+// and all events will be handled.
+// These cases will be known after feedback from community or using this library on very big project
+
+// TODO: more likely returning to chunks with EndRequestAction should be done.
+// Because it is hard to handle some cases and code is messed. For example:
+// - first input triggered adding of DOM node,
+// - second input triggered removing of DOM node.
+// In this case we don't need to merge these two inputs
+// To implement this handling for one actions array we need to create some workarounds and hacks.
+// Handling isn't clear.
 class ActionsHandler {
   duplicateEventsArray = ['keydown', 'keypress', 'input', 'keyup'];
 
@@ -41,33 +47,43 @@ class ActionsHandler {
     );
   }
 
-  async handle(actions: Readonly<Action[]>): Promise<Readonly<Action[][]>> {
+  async handle(actions: ReadonlyActionsArray): Promise<ReadonlyChunksArray> {
+    // In methods called below we mutate already pushed Action objects,
+    // because it is easier than delete current element and add new copied element;
+    // Due to these mutations actions in window.ACTIONS are also mutated,
+    // but we use window.ACTIONS in browser tests to save collected actions in file-system(test-data folder)
+    // so there we create copy of initial actions to avoid mutation of window.ACTIONS
+    //
+    // TODO: maybe we need to avoid mutation of object actions, it will be more clear.
+    // To implement this we need to replace 'const res: Action[] = [];' to 'const res: Readonly<Action>[] = [];'
+    // in this.batchInputActions and all other methods. And then get rid of all mutations.
+    const copiedActions = JSON.parse(JSON.stringify(actions));
     return Promise.resolve()
-      .then(() => this.batchInputActions(actions))
+      .then(() => this.batchInputActions(copiedActions))
       .then(actions => {
-        Console.log('batchInputActions: ', actions);
+        devConsole.log('batchInputActions: ', actions);
         return this.batchFocusAndClickActions(actions);
       })
       .then(actions => {
-        Console.log('batchFocusAndClickActions: ', actions);
+        devConsole.log('batchFocusAndClickActions: ', actions);
         return this.filterLastActionIfNeeded(actions);
       })
       .then(actions => {
-        Console.log('filterLastActionIfNeeded: ', actions);
+        devConsole.log('filterLastActionIfNeeded: ', actions);
         return this.batchActionsForSelect(actions);
       })
       .then(actions => {
-        Console.log('batchActionsForSelect: ', actions);
+        devConsole.log('batchActionsForSelect: ', actions);
         return this.splitActionsOnChunks(actions);
       })
       .then(chunks => {
-        Console.log('chunks: ', chunks);
+        devConsole.log('chunks: ', chunks);
         return chunks;
       });
   }
 
-  private batchInputActions(actions: Readonly<Action[]>): Readonly<Action[]> {
-    const res: Readonly<Action[]> = [];
+  private batchInputActions(actions: ReadonlyActionsArray): ReadonlyActionsArray {
+    const res: Action[] = [];
     actions.forEach(action => {
       const indexOfLastInteraction = res.map(isUserInteractionAction).lastIndexOf(true);
       if (indexOfLastInteraction === -1) {
@@ -157,7 +173,7 @@ class ActionsHandler {
     return res;
   }
 
-  private batchFocusAndClickActions(actions: Readonly<Action[]>): Readonly<Action[]> {
+  private batchFocusAndClickActions(actions: ReadonlyActionsArray): ReadonlyActionsArray {
     const res: Action[] = [];
 
     actions.forEach(action => {
@@ -234,7 +250,7 @@ class ActionsHandler {
    * This method batch actions only for <select> element
    * @param actionChunks
    */
-  private batchActionsForSelect(actions: Readonly<Action[]>): Readonly<Action[]> {
+  private batchActionsForSelect(actions: ReadonlyActionsArray): ReadonlyActionsArray {
     const res: Action[] = [];
 
     actions.forEach(action => {
@@ -285,7 +301,7 @@ class ActionsHandler {
     return res;
   }
 
-  private filterLastActionIfNeeded(actions: Readonly<Action[]>): Readonly<Action[]> {
+  private filterLastActionIfNeeded(actions: ReadonlyActionsArray): ReadonlyActionsArray {
     const lastAction = actions[actions.length - 1];
     if (isUserInteractionAction(lastAction) && lastAction.eventName === 'blur') {
       // delete last action, if it is 'blur' UserInteractionAction,
@@ -295,7 +311,7 @@ class ActionsHandler {
     return actions;
   }
 
-  private splitActionsOnChunks(actions: Readonly<Action[]>): Readonly<Action[][]> {
+  private splitActionsOnChunks(actions: ReadonlyActionsArray): ReadonlyChunksArray {
     return actions.reduce(
       (acc, currVal, currIndex) => {
         if (isUserInteractionAction(currVal) || (isRequestAction(currVal) && currIndex === 0)) {

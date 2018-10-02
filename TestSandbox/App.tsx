@@ -34,12 +34,17 @@ import {
   LoginForm,
   RegistrationForm,
   TodoList,
-  // merging
+  // actions merging
   MergedClickFocus,
   MergedClickBlur,
   DynamicallyAddedButton,
   RemovedTextNode,
-  RemovedElement
+  RemovedElement,
+  // mocked api responses
+  MockedJsonResponse,
+  MockedJsonResponseWithoutMutatingDOM,
+  MockedImageResponse,
+  MockedAllResponsesSimultaneously
 } from './components';
 
 import * as styles from './styles.scss';
@@ -47,7 +52,7 @@ import * as styles from './styles.scss';
 import CollectorComponent from '../src/CollectorComponent/CollectorComponent.jsx';
 
 const App = () => (
-  <CollectorComponent saveToFs={false} addComments={true}>
+  <CollectorComponent saveToFs={false} addComments={true} mockApiResponses={true}>
     <Router history={createHistory()}>
       <div>
         <nav className={styles.nav}>
@@ -96,6 +101,14 @@ const App = () => (
             <Link to="/registrationForm">RegistrationForm</Link>
             <Link to="/todoList">TodoList</Link>
           </div>
+          <div>
+            <Link to="/mockedJsonResponse">MockedJsonResponse</Link>
+            <Link to="/mockedJsonResponseWithoutMutatingDOM">
+              MockedJsonResponseWithoutMutatingDOM
+            </Link>
+            <Link to="/mockedImageResponse">MockedImageResponse</Link>
+            <Link to="/mockedAllResponsesSimultaneously">MockedAllResponsesSimultaneously</Link>
+          </div>
         </nav>
         <Switch>
           <Route exact path="/mergedClickFocus" component={MergedClickFocus} />
@@ -141,6 +154,18 @@ const App = () => (
           <Route exact path="/buttonComplex" component={ButtonComplex} />
           <Route exact path="/registrationForm" component={RegistrationForm} />
           <Route exact path="/todoList" component={TodoList} />
+          <Route exact path="/mockedJsonResponse" component={MockedJsonResponse} />
+          <Route
+            exact
+            path="/mockedJsonResponseWithoutMutatingDOM"
+            component={MockedJsonResponseWithoutMutatingDOM}
+          />
+          <Route exact path="/mockedImageResponse" component={MockedImageResponse} />
+          <Route
+            exact
+            path="/mockedAllResponsesSimultaneously"
+            component={MockedAllResponsesSimultaneously}
+          />
           <Redirect to="/login" />
         </Switch>
       </div>

@@ -5,7 +5,8 @@ const timeout = 30000;
 describe('AsyncRequestOnMount', () => {
   let page;
   beforeAll(async () => {
-    page = await global.browser.newPage();
+    const context = await browser.createIncognitoBrowserContext();
+    page = await context.newPage();
 
     await Promise.all([
       page.waitForRequest(

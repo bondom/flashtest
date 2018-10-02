@@ -1,27 +1,27 @@
 import Collector from './Collector';
-import DataHandler from './DataHandler';
+import prepareToCodeGenerating from './prepareToCodeGenerating';
 import ActionsHandler from './ActionsHandler';
 import {
   isUserInteractionAction,
   isRequestAction,
   getMutationsFromActionChunks,
-  isDomMutationAction
+  isDomMutationAction,
+  outputTitleInConsole
 } from './helper';
 import {
-  Action,
   ElementMarkup,
   DOMMutationAction,
   UserInteractionAction,
-  RequestAction
+  RequestAction,
+  ReadonlyActionsArray,
+  ReadonlyChunksArray
 } from './types';
+import * as localStorageApi from 'local-storage';
 
 import { SERVER_URI, SERVER_DEFAULT_PORT } from './Constants';
 
-import Console from '../Console';
-
 class PuppeteerTestGenerator {
   collector: Collector;
-  dataHandler: DataHandler;
   actionsHandler: ActionsHandler;
   duplicateEventsArray = ['keydown', 'keypress', 'input', 'keyup'];
   addComments: boolean;
@@ -30,36 +30,42 @@ class PuppeteerTestGenerator {
   testName?: string;
   testsFolder?: string;
   serverUrl: string;
+  mockApiResponses: boolean;
+  disableCache: boolean;
 
   constructor({
     addComments = true,
-    indicatorQuerySelector,
     saveToFs,
+    mockApiResponses,
+    indicatorQuerySelector,
     errorsArray,
     testName,
     testsFolder,
     serverPort
   }: {
     addComments: boolean;
-    indicatorQuerySelector?: string;
     saveToFs: boolean;
+    mockApiResponses: boolean;
+    indicatorQuerySelector?: string;
     errorsArray: string[];
     testName?: string;
     testsFolder?: string;
     serverPort?: number;
   }) {
     this.saveToFs = saveToFs;
-    this.dataHandler = new DataHandler();
     this.actionsHandler = new ActionsHandler();
     this.addComments = addComments;
     this.testName = testName;
     this.testsFolder = testsFolder;
     this.serverUrl = `http://localhost:${serverPort || SERVER_DEFAULT_PORT}/${SERVER_URI}`;
+    this.mockApiResponses = mockApiResponses;
     this.collector = new Collector({
       indicatorQuerySelector,
       errorsArray,
       serverUrl: this.serverUrl
     });
+    this.errorsArray = errorsArray;
+    this.disableCache = localStorageApi('disableCache') || false;
   }
 
   start() {
@@ -72,12 +78,22 @@ class PuppeteerTestGenerator {
         return this.saveFile(generatedCode);
       } else {
         /* eslint-disable no-console */
-        console.log('saveToFs is false, so code is output to console: ');
+        outputTitleInConsole('saveToFs is false, so code is output to console:', console.log);
         console.log(generatedCode);
         return;
         /* eslint-enable no-console */
       }
     });
+  }
+
+  setDisableCache(disableCache: boolean) {
+    if (this.collector.actions.some(isRequestAction)) {
+      this.errorsArray.push(`
+        Warning: You changed disable cache value when at least one request was already sent.
+      `);
+    }
+    localStorageApi('disableCache', disableCache);
+    this.disableCache = disableCache;
   }
 
   private saveFile(generatedCode: string): Promise<void | Error> {
@@ -103,7 +119,10 @@ class PuppeteerTestGenerator {
       })
       .catch((error: Error) => {
         /* eslint-disable no-console */
-        console.warn('Because of error occured when saving file, code is output to console: ');
+        outputTitleInConsole(
+          'Because of error occured when saving file, code is output to console: ',
+          console.warn
+        );
         console.log(generatedCode);
         /* eslint-enable no-console */
         return Promise.reject(error);
@@ -118,22 +137,15 @@ class PuppeteerTestGenerator {
         'Actions array is empty, test will be empty, please reload page and interact with elements on page'
       );
     }
-    const { handledActions, handledInitialMarkup } = this.dataHandler.handleData(
-      actions,
-      initialMarkup
-    );
 
-    const transformedActionChunks: Readonly<Action[][]> = await this.actionsHandler.handle(
-      handledActions
-    );
+    const actionChunks: ReadonlyChunksArray = await this.actionsHandler.handle(actions);
+    const preparedActionChunks = prepareToCodeGenerating(actionChunks);
 
-    const generatedCode = this.generateCode(transformedActionChunks, handledInitialMarkup, url);
-    Console.log('Generated code: ', generatedCode);
-    return generatedCode;
+    return this.generateCode(preparedActionChunks, initialMarkup, url);
   }
 
   generateCode(
-    actionChunks: Readonly<Action[][]>,
+    actionChunks: ReadonlyChunksArray,
     initMarkups: ElementMarkup[],
     url: string
   ): string {
@@ -141,32 +153,17 @@ class PuppeteerTestGenerator {
 
     let gotoCode = '';
     let testCaseCode = '';
-    // if on initial render of page some async requests are called
+    // if some async requests are called on initial render of page
     if (
       firstChunk.some(isRequestAction) &&
       firstChunk.filter(isUserInteractionAction).length === 0
     ) {
-      const requestActions = firstChunk.filter(isRequestAction);
-
+      gotoCode = this.generateGotoCodeForFirstAsyncChunk(firstChunk, url);
       const initMarkupsThatChangedInFirstChunk = this.getInitMarkupThatChanged(
         initMarkups,
         firstChunk.filter(isDomMutationAction)
       );
 
-      // TODO: check markup of elements when request is being sent on initial render
-      // let initialMarkupCode = '';
-      // initMarkupsThatChangedInFirstChunk.forEach(markup => {
-      //   initialMarkupCode += `
-      //     expect(
-      //       await page.$eval('[data-hook="${markup.dataHook}"]', el => el.outerHTML)
-      //     ).toEqual(
-      //       '${markup.outerHTML}'
-      //     ),
-      //   `;
-      // });
-      // initialMarkupCode += '\n';
-
-      gotoCode = this.generateCodeToWaitRequests(requestActions, `await page.goto('${url}')`);
       const initMarkupsWhichNotChecked = initMarkups.filter(
         markup =>
           typeof initMarkupsThatChangedInFirstChunk.find(
@@ -188,7 +185,8 @@ class PuppeteerTestGenerator {
       () => {
         let page;
         beforeAll(async () => {
-          page = await global.browser.newPage();
+          const context = await browser.createIncognitoBrowserContext();
+          page = await context.newPage();
           ${gotoCode}
         }, timeout);
 
@@ -214,6 +212,43 @@ class PuppeteerTestGenerator {
     return pathname[0].toUpperCase() + pathname.slice(1);
   }
 
+  private generateGotoCodeForFirstAsyncChunk(
+    firstChunk: ReadonlyActionsArray,
+    url: string
+  ): string {
+    const requestActions = firstChunk.filter(isRequestAction);
+    const mutations: DOMMutationAction[] = firstChunk.filter(isDomMutationAction);
+
+    // TODO: check markup of elements when request is being sent on initial render
+    // let initialMarkupCode = '';
+    // initMarkupsThatChangedInFirstChunk.forEach(markup => {
+    //   initialMarkupCode += `
+    //     expect(
+    //       await page.$eval('[data-hook="${markup.dataHook}"]', el => el.outerHTML)
+    //     ).toEqual(
+    //       '${markup.outerHTML}'
+    //     ),
+    //   `;
+    // });
+    // initialMarkupCode += '\n';
+
+    const mutationsRaisedByUserInteraction = mutations.filter(
+      mutation => !mutation.raisedByRequest
+    );
+
+    const requestInterceptionCodeGenerator = this.getRequestInterceptionCodeGenerator(
+      requestActions,
+      mutationsRaisedByUserInteraction
+    );
+
+    let gotoCode = '';
+    gotoCode += requestInterceptionCodeGenerator.generateCodeToEnableRequestInterception();
+    gotoCode += this.generateCodeToWaitRequests(requestActions, `await page.goto('${url}')`);
+    gotoCode += requestInterceptionCodeGenerator.generateCodeToDisableRequestInterception();
+
+    return gotoCode;
+  }
+
   private getInitMarkupThatChanged(
     initMarkups: ElementMarkup[],
     mutations: DOMMutationAction[]
@@ -223,7 +258,7 @@ class PuppeteerTestGenerator {
     );
   }
 
-  private generateTestCaseCode(actionChunks: Readonly<Action[][]>, initMarkups: ElementMarkup[]) {
+  private generateTestCaseCode(actionChunks: ReadonlyChunksArray, initMarkups: ElementMarkup[]) {
     const allMutations: DOMMutationAction[] = getMutationsFromActionChunks(actionChunks);
 
     const initMarkupsThatChanged = this.getInitMarkupThatChanged(initMarkups, allMutations);
@@ -250,9 +285,9 @@ class PuppeteerTestGenerator {
     // Traverse action chunks and generate code
     actionChunks.forEach((chunk, index) => {
       if (chunk.filter(isRequestAction).length === 0) {
-        code += this.generateCodeForSyncActionChunk(chunk, index, actionChunks, initMarkups);
+        code += this.generateCodeForSyncActionChunk(chunk, index, actionChunks);
       } else {
-        code += this.generateCodeForAsyncActionChunk(chunk, index, actionChunks, initMarkups);
+        code += this.generateCodeForAsyncActionChunk(chunk, index, actionChunks);
       }
     });
 
@@ -277,7 +312,7 @@ class PuppeteerTestGenerator {
         page.waitForResponse(
           response =>
             response.url() === '${requestAction.url}' &&
-            response.status() === ${requestAction.responseStatus}
+            response.status() === ${requestAction.response.status}
         ),
       `
         )
@@ -286,7 +321,8 @@ class PuppeteerTestGenerator {
     ]);
     `;
   }
-  private generateCodeForSimulatingUserAction(
+
+  private generateCodeToExecuteUserAction(
     interaction: UserInteractionAction,
     addSemicolon: boolean = true,
     causedAsyncRequest: boolean = false
@@ -331,10 +367,7 @@ class PuppeteerTestGenerator {
     return code;
   }
 
-  private generateCodeForCheckingValuesAfterInteraction(
-    mutations: DOMMutationAction[],
-    initMarkups: ElementMarkup[]
-  ): string {
+  private generateCodeToCheckMutationsAfterInteraction(mutations: DOMMutationAction[]): string {
     let code = '';
     mutations.forEach(mutation => {
       if (mutation.type === 'attributes') {
@@ -361,7 +394,7 @@ class PuppeteerTestGenerator {
 
   private generateCodeToCheckMutationsBeforeInteraction(
     mutations: DOMMutationAction[],
-    actionChunks: Readonly<Action[][]>,
+    actionChunks: ReadonlyChunksArray,
     index: number
   ): string {
     const previousMutations = getMutationsFromActionChunks(actionChunks.slice(0, index));
@@ -396,10 +429,9 @@ class PuppeteerTestGenerator {
   }
 
   private generateCodeForSyncActionChunk(
-    chunk: Action[],
+    chunk: ReadonlyActionsArray,
     index: number,
-    actionChunks: Readonly<Action[][]>,
-    initMarkups: ElementMarkup[]
+    actionChunks: ReadonlyChunksArray
   ): string {
     let code = '';
 
@@ -415,8 +447,8 @@ class PuppeteerTestGenerator {
         mutations.length === 0 ? '(this action caused no changes)' : ''
       }\n`;
     }
-    // generate code to simulate user action
-    code += this.generateCodeForSimulatingUserAction(interaction);
+    // generate code to execute user action
+    code += this.generateCodeToExecuteUserAction(interaction);
 
     if (this.addComments && mutations.length > 0) {
       code += `\n\n// check elements after '${interaction.eventName}' on '[data-hook="${
@@ -424,15 +456,14 @@ class PuppeteerTestGenerator {
       }"] element'\n`;
     }
     // generate code to check values after interaction(user action)
-    code += this.generateCodeForCheckingValuesAfterInteraction(mutations, initMarkups);
+    code += this.generateCodeToCheckMutationsAfterInteraction(mutations);
     return code;
   }
 
   private generateCodeForAsyncActionChunk(
-    chunk: Action[],
+    chunk: ReadonlyActionsArray,
     index: number,
-    actionChunks: Readonly<Action[][]>,
-    initMarkups: ElementMarkup[]
+    actionChunks: ReadonlyChunksArray
   ): string {
     let code = '';
 
@@ -446,63 +477,136 @@ class PuppeteerTestGenerator {
       mutation => !mutation.raisedByRequest
     );
 
-    Console.log('mutationsRaisedByUserInteraction: ', mutationsRaisedByUserInteraction);
-    const callbackName = `interceptRequestCallback${requestActions[0].id}`;
-
-    if (mutationsRaisedByUserInteraction.length > 0) {
-      code += `
-      ${this.addComments ? '// check DOM while requests are processing' : ''}
-      await page.setRequestInterception(true);
-      const ${callbackName} = async interceptedRequest => {
-        ${requestActions
-          .map(
-            requestAction => `
-            if (
-              interceptedRequest.url() === '${requestAction.url}' &&
-              interceptedRequest.method() === '${requestAction.method}'
-            ) {
-              ${this.generateCodeForCheckingValuesAfterInteraction(
-                mutationsRaisedByUserInteraction,
-                initMarkups
-              )}
-          };
-          `
-          )
-          .join('\n')}
-      interceptedRequest.continue();
-      };
-      page.on('request', ${callbackName});
-      `;
-    }
-
     const userInteraction: UserInteractionAction | undefined = chunk.find(isUserInteractionAction)!;
 
     if (index === 0 && typeof userInteraction === 'undefined') {
       // if it is first chunk with async requests raised without user interaction
+      // we just miss generating code to wait and intercept requests,
+      // because it is already generated in beforeAll block
     } else {
+      const requestInterceptionCodeGenerator = this.getRequestInterceptionCodeGenerator(
+        requestActions,
+        mutationsRaisedByUserInteraction
+      );
+
+      code += requestInterceptionCodeGenerator.generateCodeToEnableRequestInterception();
       code += this.generateCodeToWaitRequests(
         requestActions,
-        this.generateCodeForSimulatingUserAction(userInteraction, false, true)
+        this.generateCodeToExecuteUserAction(userInteraction, false, true)
       );
-    }
 
-    if (mutationsRaisedByUserInteraction.length > 0) {
-      code += `
-        page.removeListener('request', ${callbackName});
-        await page.setRequestInterception(false);\n\n
-      `;
+      code += requestInterceptionCodeGenerator.generateCodeToDisableRequestInterception();
     }
 
     const mutationsRaisedByRequest: DOMMutationAction[] = chunk.filter(
       mutation => isDomMutationAction(mutation) && mutation.raisedByRequest
     ) as DOMMutationAction[];
 
-    code += this.generateCodeForCheckingValuesAfterInteraction(
-      mutationsRaisedByRequest,
-      initMarkups
-    );
+    if (this.addComments && mutationsRaisedByRequest.length > 0) {
+      code += '\n// check mutations after response\n';
+    }
+    code += this.generateCodeToCheckMutationsAfterInteraction(mutationsRaisedByRequest);
 
     return code;
+  }
+
+  private responseShouldBeMocked(requestAction: RequestAction) {
+    return this.mockApiResponses && requestAction.response.shouldBeMocked;
+  }
+
+  private atLeastOneResponseShouldBeMocked(requestActions: RequestAction[]) {
+    return requestActions.some(rA => this.responseShouldBeMocked(rA));
+  }
+
+  private getRequestInterceptionCodeGenerator(
+    requestActions: RequestAction[],
+    mutationsRaisedByUserInteraction: DOMMutationAction[]
+  ): {
+    generateCodeToEnableRequestInterception: Function;
+    generateCodeToDisableRequestInterception: Function;
+  } {
+    const callbackName = `interceptRequestCallback${requestActions[0].id}`;
+
+    const generateCodeToEnableRequestInterception = (): string => {
+      if (
+        mutationsRaisedByUserInteraction.length > 0 ||
+        this.atLeastOneResponseShouldBeMocked(requestActions)
+      ) {
+        return `
+            ${
+              this.addComments
+                ? `// check DOM while requests are processing ${
+                    this.mockApiResponses ? 'and mock api responses' : ''
+                  }`
+                : ''
+            }
+            await page.setRequestInterception(true);
+            const ${callbackName} = async interceptedRequest => {
+              ${requestActions
+                .map(
+                  requestAction => `
+                  if (
+                    interceptedRequest.url() === '${requestAction.url}' &&
+                    interceptedRequest.method() === '${requestAction.method}'
+                  ) {
+                    ${this.generateCodeToCheckMutationsAfterInteraction(
+                      mutationsRaisedByUserInteraction
+                    )}
+                    ${
+                      this.responseShouldBeMocked(requestAction)
+                        ? this.generateCodeToMockResponse(requestAction)
+                        : ''
+                    }
+                };
+                `
+                )
+                .join('\n')}
+            interceptedRequest.continue();
+            };
+            page.on('request', ${callbackName});
+          `;
+      } else {
+        return '';
+      }
+    };
+
+    const generateCodeToDisableRequestInterception = (): string => {
+      if (
+        mutationsRaisedByUserInteraction.length > 0 ||
+        this.atLeastOneResponseShouldBeMocked(requestActions)
+      ) {
+        return `
+          page.removeListener('request', ${callbackName});
+          await page.setRequestInterception(false);\n\n
+        `;
+      } else {
+        return '';
+      }
+    };
+
+    return {
+      generateCodeToEnableRequestInterception,
+      generateCodeToDisableRequestInterception
+    };
+  }
+
+  private generateCodeToMockResponse(requestAction: RequestAction): string {
+    const response = requestAction.response;
+
+    const headers = { ...response.headers };
+    delete headers['content-type'];
+
+    // by default we can't read Access-Control-Allow-Origin header from Response's header,
+    // (Access-Control-Expose-Headers header should be set)
+    // so we suppose that every response has this header set
+    headers['Access-Control-Allow-Origin'] = '*';
+
+    return `interceptedRequest.respond({
+      status: ${response.status},
+      headers: ${JSON.stringify(headers)},
+      contentType: ${response.contentType},
+      body: ${response.body}
+    }); return;`;
   }
 }
 

@@ -5,7 +5,8 @@ const timeout = 30000;
 describe('TodoList', () => {
   let page;
   beforeAll(async () => {
-    page = await global.browser.newPage();
+    const context = await browser.createIncognitoBrowserContext();
+    page = await context.newPage();
 
     // trigger user action and wait for right request and response
     await Promise.all([

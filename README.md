@@ -1,6 +1,7 @@
 # Flashtest
 [![npm version](https://img.shields.io/npm/v/flashtest.svg)](https://www.npmjs.com/package/flashtest)
 
+###### [Explanations of generated code](https://github.com/bondom/flashtest/blob/master/CODE_GENERATING_EXPLANATIONS.md)
 Flashtest is Javascript library for generating tests written with [jest](https://github.com/facebook/jest) and [puppeteer](https://github.com/GoogleChrome/puppeteer). You just interact with UI as a usual user and test is generated for you!
 > #### !!! Important:
 > 1. For now library exposes only component for [React](https://github.com/facebook/react) users.
@@ -139,14 +140,14 @@ Library tracks requests which are sent with only [fetch](https://developer.mozil
 
 ### Current support 
 1. `HTMLElement` was only checked, `SVGElement` and others weren't checked yet. 
-2.  Special buttons such as `Esc`, `Backspace` and similar ones aren't supported yet.
+2. Special buttons such as `Esc`, `Backspace` and similar ones aren't supported yet.
 3. Body of request isn't checked in tests, only url and method are checked.
 4. Url change isn't supported. If you want to create test for particular url, go to this url, reload page and start
 `interacting process` from scratch.
 5. HTMLElement with `contentEditable` attribute isn't handled properly yet, so generated code will be broken if you use this element and add `data-hook` attribute to it.
 6. Change to following elements aren't checked in generated code: `input[type="checkbox"]`, `input[type="radio"]` 
 and `select` because in these cases DOM isn't changed.
-
+7. Cookies/local storage values aren't read by library.
 
 ### Usage rules
 
@@ -204,73 +205,6 @@ it is possible. It is needed to avoid putting useless info in generated code.
   If you start to enter value too fast, order of triggered events is unusual. This point is planned
   to be automated in future, but now please keep in mind it.
     > You will get corresponding warning in helper window if you break this rule.
-
-
-### Сlarifications related to generated code
-> In this section `Element` means HTMLElement with `data-hook` attribute.
-1. If `Element` has children which are `interaction elements` and content of this `Element` is changed, this change will not be tracked by library, it is needed to reduce size of tested html.<br/> 
-    Consider this piece of code:
-
-    ```jsx
-    <div data-hook="div">
-      [input value]
-      <input data-hook="input" />
-    </div>
-    ```
-    When user typed value in input, only attribute value of input will be checked,
-    but outerHTML of div will not be checked.<br/>
-    If you want to check this one, it should be:
-
-    ```jsx
-    <div data-hook="div">
-      <span data-hook="input value">[input value]</span>
-      <input data-hook="input" />
-    </div>
-    ```
-
-    <b>Note:</b> it is not related to case when HTMLElement is added to the DOM, in this case outerHTML of added HTMLElement will be checked despite of its children.
-
-
-2. If `Element` is added to the DOM, outerHTML is checked in tests.<br/>
-If content of `Element` changed(TextNode changed/added), innerHTML is checked in tests.
-
-3. If `Element` is added to the DOM, and there are children of this element with data-hook attribute, library will search children with data-hook attribute of the most nested sub-trees and check outerHTML of them.<br/>
-    <b>Example:</b> When next `Element` is added to the DOM:
-
-    ```jsx
-    <div data-hook="root-div">
-      <span data-hook="span1">Some text</span>
-      <div data-hook="div1">
-        <div data-hook="div1-nested">
-          <span data-hook="span2">Some text2</span>
-        </div>
-      </div>
-      <div data-hook="div2">
-        <input data-hook="input" value="val" />
-      </div>
-    </div>
-    ```
-
-    outerHTML of next elements will be checked in tests: `[data-hook="span1"]`, `[data-hook="span2"]`, `[data-hook="input"]`.
-
-4. If TextNode is changed and direct parentElement doesn't have data-hook attribute, 
-this change will not be checked in tests. If you want to track this change, add data-hook attribute to direct parent 
-of TextNode.
-
-    Change to span WILL NOT be checked in code:
-    ```jsx
-    <div data-hook="div">
-      <span>[input value]</span>
-      <input data-hook="input" />
-    </div>
-    ```
-    Change to span IS GOING to be checked in code:
-    ```jsx
-    <div data-hook="div">
-      <span data-hook="span">[input value]</span>
-      <input data-hook="input" />
-    </div>
-    ```
     
 ### License
 Flashtest is [MIT licensed](./LICENSE).

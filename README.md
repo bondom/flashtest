@@ -98,9 +98,6 @@ get corresponding message in helper window. Generated code is output to console 
 When you got generated code in test file just run it,
 if it passes - good!<br/>
 
-
-If these things are fine, it means that more likely there is a bug in library. Feel free to create issue!
-
 ### CollectorComponent API
 
 #### saveToFs _(default: false)_
@@ -130,13 +127,13 @@ Library tracks requests which are sent with only [fetch](https://developer.mozil
 [XMLHttpRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest) library will just miss these requests.
 
 
-### Current support 
+### Not implemented(not checked) features 
 1. `HTMLElement` was only checked, `SVGElement` and others weren't checked yet. 
 2. Special buttons such as `Esc`, `Backspace` and similar ones aren't supported yet.
 3. Body of request isn't checked in tests, only url and method are checked.
 4. Url change isn't supported. If you want to create test for particular url, go to this url, reload page and start
-`interacting process` from scratch.
-5. HTMLElement with `contentEditable` attribute isn't handled properly yet, so generated code will be broken if you use this element and add `data-hook` attribute to it.
+to interact with page from scratch.
+5. `HTMLElement` with `contentEditable` attribute isn't handled properly yet, so generated code will be broken if you use this element and add `data-hook` attribute to it.
 6. Change to following elements aren't checked in generated code: `input[type="checkbox"]`, `input[type="radio"]` 
 and `select` because in these cases DOM isn't changed.
 7. Cookies/local storage values aren't read by library.
@@ -145,11 +142,12 @@ and `select` because in these cases DOM isn't changed.
 If test fails at once after generating check next things:
 1. Your jest puppeteer setup, to check this one just create simple test with jest and puppeteer and run it.
 2. Check if you added `data-hook` attribute to all `interaction elements` you interacted with.
-3. If you use async requests, check if data sent by backend didn't change.
+3. If you use async requests and [mockApiResponses](#mockapiresponses-default-false) is `false`, check if data sent by backend weren't changed.
 4. Check sections [Async requests](#async-requests), [Usage rules](#usage-rules) and [Current Support](#current-support)
 
-### Usage rules
+If these things are fine, it means that more likely there is a bug in library. Feel free to create issue!
 
+### Usage rules
 1. Use <b>Incognito mode</b>. It is needed for two reasons:
     * Prevent sharing cookies/cache from current test with cookies/cache from another tests, if they are run at the same time.
     * Prevent wrong test generating(library doesn't read values from cookies and local storage now, maybe it will be implemented in future)

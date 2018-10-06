@@ -178,6 +178,7 @@ class PuppeteerTestGenerator {
 
     // prettier-ignore
     const code = `
+    ${!this.mockApiResponses ? `import assert from 'assert';;` : ''}
     const timeout = 30000;
 
     describe(
@@ -243,7 +244,10 @@ class PuppeteerTestGenerator {
 
     let gotoCode = '';
     gotoCode += requestInterceptionCodeGenerator.generateCodeToEnableRequestInterception();
-    gotoCode += this.generateCodeToWaitRequests(requestActions, `await page.goto('${url}')`);
+    gotoCode += this.generateCodeToWaitRequestsAndResponses(
+      requestActions,
+      `await page.goto('${url}')`
+    );
     gotoCode += requestInterceptionCodeGenerator.generateCodeToDisableRequestInterception();
 
     return gotoCode;
@@ -294,32 +298,74 @@ class PuppeteerTestGenerator {
     return code;
   }
 
-  private generateCodeToWaitRequests(
+  private generateCodeToWaitRequestsAndResponses(
     requestActions: RequestAction[],
     causeOfRequestsCode: string
   ): string {
-    return `
-      ${this.addComments ? '\n// trigger user action and wait for right request and response' : ''}
+    let code = this.addComments
+      ? '\n// trigger user action and wait for right request and response'
+      : '';
+
+    if (this.mockApiResponses) {
+      code += `
+        await Promise.all([
+        ${requestActions
+          .map(
+            requestAction => `
+          ${this.generateCodeToWaitRequests(requestAction)},
+          page.waitForResponse(
+            response =>
+              response.url() === '${requestAction.url}' &&
+              response.status() === ${requestAction.response.status}
+          ),
+        `
+          )
+          .join('\n')}
+          ${causeOfRequestsCode}
+      ]);
+      `;
+    } else {
+      // if responses aren't mocked, we check response status with node's assert,
+      // it allows to detect wrong response status exactly.
+
+      code += `
       await Promise.all([
-      ${requestActions
-        .map(
+        ${requestActions.map(
           requestAction => `
-        page.waitForRequest(
-          request =>
-            request.url() === '${requestAction.url}' &&
-            request.method() === '${requestAction.method}'
-        ),
-        page.waitForResponse(
-          response =>
-            response.url() === '${requestAction.url}' &&
-            response.status() === ${requestAction.response.status}
-        ),
-      `
-        )
-        .join('\n')}
-        ${causeOfRequestsCode}
-    ]);
-    `;
+            ${this.generateCodeToWaitRequests(requestAction)},
+            page.waitForResponse(response => {
+              const url = response.url();
+              const method = response.request().method();
+              if (url === '${requestAction.url}' && method === '${requestAction.method}') {
+                const actualResponseStatus = response.status();
+                assert.strictEqual(
+                  actualResponseStatus,
+                  ${requestAction.response.status},
+                  \`Response status of '\${method} \${url}' should be ${
+                    requestAction.response.status
+                  }, but it is \${actualResponseStatus}\`
+                );
+                return true;
+              }
+              return false;
+            }),
+          `
+        )}
+
+        await page.click('[data-hook="async-button__get-submit-btn"]')
+      ]);
+      
+      `;
+    }
+    return code;
+  }
+
+  private generateCodeToWaitRequests(requestAction: RequestAction): string {
+    return `page.waitForRequest(
+      request =>
+        request.url() === '${requestAction.url}' &&
+        request.method() === '${requestAction.method}'
+    )`;
   }
 
   private generateCodeToExecuteUserAction(
@@ -490,7 +536,7 @@ class PuppeteerTestGenerator {
       );
 
       code += requestInterceptionCodeGenerator.generateCodeToEnableRequestInterception();
-      code += this.generateCodeToWaitRequests(
+      code += this.generateCodeToWaitRequestsAndResponses(
         requestActions,
         this.generateCodeToExecuteUserAction(userInteraction, false, true)
       );

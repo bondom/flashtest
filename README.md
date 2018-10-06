@@ -1,7 +1,7 @@
 # Flashtest
 [![npm version](https://img.shields.io/npm/v/flashtest.svg)](https://www.npmjs.com/package/flashtest)
 
-###### [Explanations of generated code](https://github.com/bondom/flashtest/blob/master/CODE_GENERATING_EXPLANATIONS.md)
+###### [Explanations to generated code](https://github.com/bondom/flashtest/blob/master/CODE_GENERATING_EXPLANATIONS.md)
 Flashtest is Javascript library for generating tests written with [jest](https://github.com/facebook/jest) and [puppeteer](https://github.com/GoogleChrome/puppeteer). You just interact with UI as a usual user and test is generated for you!
 > #### !!! Important:
 > 1. For now library exposes only component for [React](https://github.com/facebook/react) users.

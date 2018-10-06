@@ -49,14 +49,14 @@ If content of `Element` is <b>changed</b> (TextNode is changed/added), innerHTML
 this change will not be checked in tests. If you want to track this change, add data-hook attribute to direct parent 
 of TextNode.
 
-    Change to span WILL NOT be checked in code:
+    Change to span <b>will not</b> be checked in code:
     ```jsx
     <div data-hook="div">
       <span>[input value]</span>
       <input data-hook="input" />
     </div>
     ```
-    Change to span IS GOING to be checked in code:
+    Change to span <b>is going</b> to be checked in code:
     ```jsx
     <div data-hook="div">
       <span data-hook="span">[input value]</span>
